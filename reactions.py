@@ -39,6 +39,6 @@ def identifyType (reaction, verbose):
         if nProducts == 2: 
             return ReactionType.CONDENSATION_22
         if nProducts == 3: 
-            return reactionType.CLEAVAGE_23
+            return ReactionType.CLEAVAGE_23
 
     errorsCheck.checkProtoSim(2, reaction)
