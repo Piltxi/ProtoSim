@@ -1,9 +1,7 @@
 import argparse
-import time
 
 import chemicalio
-import errorsCheck
-import odetools
+from odetools import simulation
 
 def main(verbose):
 
@@ -11,8 +9,8 @@ def main(verbose):
 
     if verbose:
         chemicalio.printInfo(parameters, environment, chemicalSpecies, reactions)
-        
-    (mat_, time) = odetools.simulation (verbose, environment, parameters, chemicalSpecies, reactions)
+
+    (mat_, time) = simulation (verbose, environment, parameters, chemicalSpecies, reactions)
 
     # chemicalio.excelExport(mat_, time_)
 

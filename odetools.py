@@ -2,6 +2,7 @@ import numpy as np
 import time
 
 import chemicalio
+from errorsCheck import checkProtoSim
 
 """
 parameters = allParameters[0]
@@ -66,15 +67,10 @@ def callOdeSolver (ode_function, time, protoAct, parameters, mapReactions, delta
 
 def ode_function (time, protoAct, parameters): 
 
-    protoX = protoAct[1] [:]
+    protoX = protoAct[1][:]
     protoInit = protoAct[0]
     
     Dx=scalar_multiply(protoInit, 0)
-
-    # for element in parameters[0]: 
-    #     print ("L: ", element)
-
-    # quit()
 
     for i in range(len(protoInit)):
         if protoInit[i]!=0:
@@ -131,7 +127,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
     deltaT = min (maxStep/10., interval[1]/10.)
     
     # Start of current simulation
-    t = interval[0] #t_start
+    t = interval[0]
     
     protoAct = protoGen[1][:] 
 
@@ -149,6 +145,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
     seconds = 0.01
 
     while divisionTest (t, protoAct, parameters):
+        
         # if t > seconds: 
         #     print (t, protoAct)
         
@@ -185,9 +182,6 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
     protoGen = np.array([chemicalSpecies[quantity][0] for quantity in chemicalSpecies])
     protoInit = np.array([chemicalSpecies[quantity][0] for quantity in chemicalSpecies])
 
-    # print ("\nProtoGen: ", protoGen)
-    # print ("protoInit: ", protoInit)
-
     loadedSpecies = list(chemicalSpecies.keys())
     mapReactions = chemicalio.map_species_to_indices(reactions, protoGen, loadedSpecies)
 
@@ -203,11 +197,10 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
             print ("Step n.", i)
 
         # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
-        
         startTime = time.time()
         (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux)
         endTime = time.time()
-    
+
         executionTime = endTime - startTime
         if verbose: 
             if executionTime > 60:
