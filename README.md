@@ -37,4 +37,4 @@ python3 main.py
 
 ## ✍️ Authors <a name = "authors"></a>
 
-- [@piltxi](https://github.com/kylelobo)
+- [@piltxi](https://github.com/Piltxi/)
