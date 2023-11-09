@@ -83,12 +83,15 @@ cd src
 python3 main.py -v
 ```
 
-📥 To delete the folder with output information: 
+📥 To delete the directory with output information: 
 
 ```
 cd src
-python3 main.py -v
+python3 main.py -r
 ```
+
+ProtoSim reads the input parameters and reactions from two text files. 
+The files are located in input/ .
 
 ## ✍️ Authors <a name = "authors"></a>
 
