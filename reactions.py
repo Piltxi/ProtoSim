@@ -5,7 +5,7 @@ import errorsCheck
 class ReactionType (Enum): 
     
     CONDENSATION_21 = "Condensation: II>O"
-    CONDENSATION_22 = "Condensation: II>OO" #?
+    CONDENSATION_22 = "Condensation: II>OO"
 
     CLEAVAGE_12 = "Cleavage: I>OO"
     CLEAVAGE_23 = "Cleavage: II>OOO"
