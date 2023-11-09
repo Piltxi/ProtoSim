@@ -119,12 +119,35 @@ def ode_function (time, protoAct, parameters):
                 Dx[reactions[i]["out"][2]] += term
 
             case chemicalio.ReactionType.DIFFUSION:
-               # chi, delta, ro, k, Da, As, div = parameters
-                                      #       Da          *       (C      /(ro*                   Delta)                  *K)           *         A*                 - 
-                #Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1]
-                # Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / (parameters [0][2] * parameters[0][1]) * parameters [0][3]))  * protoX[reactions[i]["in"][0]] - (protoX[reactions[i]["in"][0]] / (parameters[0][0] * pow (protoX[0], 1.5)) ) / parameters [0][1]
                 
-                Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1]
+                """
+                    print ("Coefficiente di diffusione: ", reactions[i]["in"][0], "\n")
+                    print ("Coefficiente di reazione ", reactions[i]["k"])
+                    print ("Print parameters...\n")
+                    print ("Chi: ", (parameters[0][0] * pow (protoX[0], 1.5)))
+                    print ("Ro: ", parameters[0][2] )
+                    print ("Da: ", parameters[0][5])
+                    print ("Delta: ", parameters[0][1])
+                    print ("K: ", parameters[0][4])
+                    print ("Da: ", parameters[0][4])
+                    print ("Delta: ", parameters[0][1])
+                    print ("K: ", parameters[0][3])
+                """
+            
+                #quit()
+
+                """
+                    chi, delta, ro, k, Da, As, div = parameters
+                    0.0023 è uscito dal calcolo ((Da*K)/ro*delta^2)
+                    è corretto il +=? 
+                    old test: Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1] 
+                """
+
+                # Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1] #test OK
+                
+                # Dx [reactions[i]["out"][0]] += ((reactions[i]["k"] * protoX[0])) * ((reactions[i]["in"][0] - (protoX [reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5)))) / parameters [0][1] )
+                Dx [reactions[i]["out"][0]] += ((parameters[0][4] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * parameters[0][3]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
+
             case _:
                 checkProtoSim (5, reactions[i])
 

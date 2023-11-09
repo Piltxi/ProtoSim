@@ -27,6 +27,7 @@ def importParameters (verbose):
 
     calving = 0.353553
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))
+    # print ("chi main: ", chi)
     t_start = 0.
 
     # List of parameters to resolve ODE
@@ -164,10 +165,10 @@ def map_species_to_indices(reactions, protoGen, loadedSpecies):
         indexed_products = []
 
         for reagent in reaction["in"]:
-            if reagent in loadedSpecies:
+            if reaction["type"] == ReactionType.DIFFUSION:
+                indexed_reagents.append(float(reaction["in"][0]))
+            elif reagent in loadedSpecies:
                 indexed_reagents.append(loadedSpecies.index(reagent))
-            elif reaction["type"] == ReactionType.DIFFUSION:
-                indexed_reagents.append(-103)
 
         for product in reaction["out"]:
             if product in loadedSpecies:
