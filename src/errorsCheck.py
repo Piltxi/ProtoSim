@@ -11,7 +11,7 @@ def checkProtoSim (arg, data):
                 quit()
         
         case 1: 
-            print ("\nERROR 01 - chemical symbol in reactions")
+            print ("\nERROR 01 - chemical symbol in reactions: ", data)
             quit ()
         
         case 2: 

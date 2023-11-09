@@ -3,6 +3,7 @@ import subprocess
 import os
 import xlsxwriter
 from datetime import datetime
+from errorsCheck import checkProtoSim
 
 from reactions import ReactionType, identifyType
 import errorsCheck
@@ -100,7 +101,7 @@ def importParameters (verbose):
                     reactions.append(reaction_data)
                 
                 else: 
-                    checkProtoSim (1, "error")
+                    checkProtoSim (1, line)
     
     loadedSpecies = list(chemicalSpecies.keys())
     
