@@ -90,6 +90,16 @@ cd src
 python3 main.py -r
 ```
 
+📥 To specify input file with parameters and reactions: 
+
+default: parameters in *input/parameters.txt* and reactions in *input/chimica.txt*
+❌ respect the semantic order of parameters and values ❗
+
+```
+cd src
+python3 main.py -f
+```
+
 ProtoSim reads the input parameters and reactions from two text files. 
 The files are located in input/ . 
 You can edit them to change a parameter or insert new reactions. 
