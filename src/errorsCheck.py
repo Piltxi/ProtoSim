@@ -56,4 +56,3 @@ def resetInfo ():
             subprocess.run(["rm", "-fr", "../out"], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error in removing the existing directory: {e}")
-    quit()
