@@ -229,6 +229,10 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     wq = workbook.add_worksheet("Quantity")
     wc = workbook.add_worksheet("Concentration")
 
+    wq.set_column('A:Z', 15)
+    wc.set_column('A:Z', 15)
+
+
     wq.write(0, 0, "Generation")
     loadedSpecies = list(chemicalSpecies.keys())
     i = 1
