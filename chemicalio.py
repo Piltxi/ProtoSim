@@ -151,9 +151,10 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
 
     protoGen = np.array([chemicalSpecies[quantity][0] for quantity in chemicalSpecies])
     loadedSpecies = list(chemicalSpecies.keys())
-    mapReactions = map_species_to_indices(reactions, protoGen, loadedSpecies)
-    print("\nReactions [index print]:")
-    printMapReactions(mapReactions)
+    
+    # mapReactions = map_species_to_indices(reactions, protoGen, loadedSpecies)
+    # print("\nReactions [index print]:")
+    # printMapReactions(mapReactions)
 
     print ("\nEND PRINTING INFO...\n")
 

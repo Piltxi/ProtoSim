@@ -1,7 +1,27 @@
 import argparse
+import numpy as np
 
 import chemicalio
 from odetools import simulation
+
+"""
+parameters = allParameters[0]
+#parameters = [chi, delta, ro, k, Da, As, div]
+chi, delta, ro, k, Da, As, div = parameters
+
+environment = allParameters [1]
+# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen]; 
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen, calving = environment
+"""
+
+def printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation): 
+
+    print ("End of simulation...\n")
+    chemicalio.printInfo(parameters, environment, chemicalSpecies, reactions)
+
+
+
+
 
 def main(verbose):
 
@@ -10,7 +30,9 @@ def main(verbose):
     if verbose:
         chemicalio.printInfo(parameters, environment, chemicalSpecies, reactions)
 
-    (mat_, time) = simulation (verbose, environment, parameters, chemicalSpecies, reactions)
+    (matrixSimulation, timeSimulation) = simulation (verbose, environment, parameters, chemicalSpecies, reactions)
+    printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation)
+
 
     # chemicalio.excelExport(mat_, time_)
 

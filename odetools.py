@@ -143,9 +143,6 @@ def ode_function (time, protoAct, parameters):
                     old test: Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1] 
                 """
 
-                # Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1] #test OK
-                
-                # Dx [reactions[i]["out"][0]] += ((reactions[i]["k"] * protoX[0])) * ((reactions[i]["in"][0] - (protoX [reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5)))) / parameters [0][1] )
                 Dx [reactions[i]["out"][0]] += ((parameters[0][4] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * parameters[0][3]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
 
             case _:
@@ -230,14 +227,14 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
     for i in range (nIterates): 
         
         if verbose: 
-            print ("Step n.", i)
+            print ("Start generation n.", i)
 
         # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
         startTime = time.time()
         (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient)
         endTime = time.time()
 
-        print ("Tempo di duplicazione: ", solverTime[-1])
+        print ("Duplication Time: ", solverTime[-1])
 
         executionTime = endTime - startTime
         if verbose: 
@@ -252,7 +249,7 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
         protoGen = np.copy (y_sol[-1])
     
         if verbose: 
-            print ("Step n.", i, "\t", protoGen)
+            print ("End generation n.", i, "\t", protoGen, "\n")
     
         time_ += [solverTime[-1]]
         mat += [np.copy(protoGen)]
