@@ -234,16 +234,16 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
         (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient)
         endTime = time.time()
 
-        print ("Duplication Time: ", solverTime[-1])
+        #print ("Duplication Time: ", solverTime[-1])
 
         executionTime = endTime - startTime
         if verbose: 
             if executionTime > 60:
                 minutes=int(executionTime/60)
                 seconds=round(executionTime%60)
-                print(f"time spent {minutes}:{seconds} minutes")
+                print(f"Duplication Time: ", solverTime[-1], f" | Time spent {minutes}:{seconds} minutes")
             else:  
-                print(f"time spent {round(executionTime)} seconds") 
+                print(f"Duplication Time: ", solverTime[-1], f" | time spent {round(executionTime)} seconds") 
         
         # About last generation 
         protoGen = np.copy (y_sol[-1])

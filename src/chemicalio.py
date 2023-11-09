@@ -7,7 +7,7 @@ import errorsCheck
 
 def importParameters (verbose): 
     
-    fi=open("parameters.txt",'r')   
+    fi=open("../input/parameters.txt",'r')   
 
     delta = eval(fi.readline().split()[0])
     ro = eval(fi.readline().split()[0])
@@ -39,7 +39,7 @@ def importParameters (verbose):
     chemicalSpecies = {}
     reactions = []
 
-    fi=open("chimica.txt",'r')
+    fi=open("../input/chimica.txt",'r')
     specify = fi.readlines()
     fi.close()
 

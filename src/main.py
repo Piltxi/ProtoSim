@@ -20,9 +20,6 @@ def printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixS
     chemicalio.printInfo(parameters, environment, chemicalSpecies, reactions)
 
 
-
-
-
 def main(verbose):
 
     parameters, environment, chemicalSpecies, reactions = chemicalio.importParameters (verbose)
