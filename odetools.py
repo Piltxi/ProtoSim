@@ -68,13 +68,18 @@ def callOdeSolver (ode_function, time, protoAct, parameters, mapReactions, delta
 def ode_function (time, protoAct, parameters): 
 
     protoX = protoAct[1][:]
-    protoInit = protoAct[0]
+    coefficients = protoAct[0] [:]
     
-    Dx=scalar_multiply(protoInit, 0)
+    Dx=scalar_multiply(protoX, 0)
 
-    for i in range(len(protoInit)):
-        if protoInit[i]!=0:
-            Dx[0] += protoInit[i] * protoX[i]
+
+    """
+        Primi 
+    """
+
+    for i in range(len(protoX)):
+        if coefficients[i]!=0:
+            Dx[0] += protoX[i] * coefficients[i]
 
     reactions = parameters[1]
     
@@ -114,15 +119,18 @@ def ode_function (time, protoAct, parameters):
                 Dx[reactions[i]["out"][2]] += term
 
             case chemicalio.ReactionType.DIFFUSION:
-               
+               # chi, delta, ro, k, Da, As, div = parameters
+                                      #       Da          *       (C      /(ro*                   Delta)                  *K)           *         A*                 - 
+                #Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1]
+                # Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / (parameters [0][2] * parameters[0][1]) * parameters [0][3]))  * protoX[reactions[i]["in"][0]] - (protoX[reactions[i]["in"][0]] / (parameters[0][0] * pow (protoX[0], 1.5)) ) / parameters [0][1]
+                
                 Dx [reactions[i]["out"][0]] += (parameters[0][4] * (protoX[0] / parameters [0][2] * parameters[0][1]) * parameters [0][3] * (1) ) / parameters [0][1]
-
             case _:
                 checkProtoSim (5, reactions[i])
 
     return Dx
 
-def solver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux):
+def solver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux, coefficient):
 
     deltaT = min (maxStep/10., interval[1]/10.)
     
@@ -149,7 +157,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
         # if t > seconds: 
         #     print (t, protoAct)
         
-        var = callOdeSolver (ode_function, t, [protoGen[0], protoAct], parameters, mapReactions, deltaT, nFlux)
+        var = callOdeSolver (ode_function, t, [coefficient, protoAct], parameters, mapReactions, deltaT, nFlux)
         
         protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
 
@@ -185,6 +193,11 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
     loadedSpecies = list(chemicalSpecies.keys())
     mapReactions = chemicalio.map_species_to_indices(reactions, protoGen, loadedSpecies)
 
+    coefficient = np.array ([chemicalSpecies[coefficient][1] for coefficient in chemicalSpecies])
+
+    # for element in coefficient: 
+    #     print ("Coefficiente associato: ", element, "\n")
+
     time_ = []
     mat = []
     
@@ -198,8 +211,10 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
 
         # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
         startTime = time.time()
-        (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux)
+        (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient)
         endTime = time.time()
+
+        print ("Tempo di duplicazione: ", solverTime[-1])
 
         executionTime = endTime - startTime
         if verbose: 
