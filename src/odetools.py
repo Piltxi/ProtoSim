@@ -227,7 +227,7 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
     for i in range (nIterates): 
         
         if verbose: 
-            print ("Start generation n.", i)
+            print ("Start generation n.", i+1)
 
         # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
         startTime = time.time()
@@ -249,7 +249,7 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
         protoGen = np.copy (y_sol[-1])
     
         if verbose: 
-            print ("End generation n.", i, "\t", protoGen, "\n")
+            print ("End generation n.", i+1, "\t", protoGen, "\n")
     
         time_ += [solverTime[-1]]
         mat += [np.copy(protoGen)]
