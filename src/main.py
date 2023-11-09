@@ -47,5 +47,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    #! TO DO - choice of input file
+
     main(args.verbose, args.reset)
 
