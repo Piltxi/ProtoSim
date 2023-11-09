@@ -1,6 +1,6 @@
 from enum import Enum
 
-import errorsCheck
+from errorsCheck import checkProtoSim
 
 class ReactionType (Enum): 
     
@@ -41,4 +41,4 @@ def identifyType (reaction, verbose):
         if nProducts == 3: 
             return ReactionType.CLEAVAGE_23
 
-    errorsCheck.checkProtoSim(2, reaction)
+    checkProtoSim(2, reaction)

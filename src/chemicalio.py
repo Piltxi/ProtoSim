@@ -15,9 +15,19 @@ def getVolume(C, ro, delta):
     radius = delta * (pow(C / (ro * np.pi * delta * delta * delta) - 1/3, 0.5) - 1) / 2
     return 4 * np.pi * radius * radius * radius / 3
 
-def importParameters (verbose): 
+def importParameters (verbose, file): 
+
+    parametersFile = ""
+    reactionsFile = ""
     
-    fi=open("../input/parameters.txt",'r')   
+    if file: 
+        parametersFile = input("Type the name of text file with parameters> ")
+        reactionsFile = input("Type the name of text file with reaction> ")
+    else: 
+        parametersFile = "../input/parameters.txt"
+        reactionsFile = "../input/chimica.txt"
+
+    fi=open(parametersFile,'r')   
 
     delta = eval(fi.readline().split()[0])
     ro = eval(fi.readline().split()[0])
@@ -49,7 +59,7 @@ def importParameters (verbose):
     chemicalSpecies = {}
     reactions = []
 
-    fi=open("../input/chimica.txt",'r')
+    fi=open(reactionsFile,'r')
     specify = fi.readlines()
     fi.close()
 

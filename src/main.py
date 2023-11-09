@@ -1,4 +1,5 @@
 import argparse
+from click import File
 import numpy as np
 
 from chemicalio import importParameters, excelExport, printInfo
@@ -22,12 +23,12 @@ def printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixS
     printInfo(parameters, environment, chemicalSpecies, reactions)
 
 
-def main(verbose, reset):
+def main(verbose, reset, file):
 
     if reset: 
         resetInfo()
 
-    parameters, environment, chemicalSpecies, reactions = importParameters (verbose)
+    parameters, environment, chemicalSpecies, reactions = importParameters (verbose, file)
 
     if verbose:
         printInfo(parameters, environment, chemicalSpecies, reactions)
@@ -43,11 +44,10 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="ProtoGen Simulator v.1 - 284660")
     parser.add_argument("-v", "--verbose", action="store_true", help="additional prints")
-    parser.add_argument("-r", "--reset", action="store_true", help="reset out/ directory")
+    parser.add_argument("-r", "--reset", action="store_true", help="reset directory out/")
+    parser.add_argument("-f", "--file", action="store_true", help="specify input file for parameters and reactions")
 
     args = parser.parse_args()
 
-    #! TO DO - choice of input file
-
-    main(args.verbose, args.reset)
+    main(args.verbose, args.reset, args.file)
 
