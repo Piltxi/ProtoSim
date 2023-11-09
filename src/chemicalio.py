@@ -219,7 +219,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     directory_name = f"../out/out_{currentTime}"
 
     try:
-        subprocess.run(["mkdir", directory_name], check=True)
+        subprocess.run(["mkdir" , directory_name], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error in creating second directory: {e}")
 
