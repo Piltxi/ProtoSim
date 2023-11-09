@@ -1,9 +1,18 @@
 import numpy as np
 import subprocess
 import os
+import xlsxwriter
+from datetime import datetime
 
 from reactions import ReactionType, identifyType
 import errorsCheck
+
+def getConcentration(x, C, ro, delta):
+    return x / getVolume(C, ro, delta)
+
+def getVolume(C, ro, delta):
+    radius = delta * (pow(C / (ro * np.pi * delta * delta * delta) - 1/3, 0.5) - 1) / 2
+    return 4 * np.pi * radius * radius * radius / 3
 
 def importParameters (verbose): 
     
@@ -196,29 +205,73 @@ def printMapReactions (mapReactions):
         print("Reaction type:", reaction["type"])
         print()
 
-def excelExport (mat, time): 
+def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameters): 
 
-    # Sostituisci "nome_della_tua_nuova_directory" con il nome desiderato per la nuova directory
-    directory_name = "out"
+    directory_name = "../out"
 
-    # Verifica se la directory esiste già
-    if os.path.exists(directory_name):
-        # Rimuovi la directory esistente
+    if not os.path.exists(directory_name):
         try:
-            subprocess.run(["rm", "-r", directory_name], check=True, shell=True)
-            print(f"La directory '{directory_name}' esistente è stata rimossa.")
+            subprocess.run(["mkdir", directory_name], check=True)
         except subprocess.CalledProcessError as e:
-            print(f"Errore durante la rimozione della directory esistente: {e}")
+            print(f"Error in creating the directory: {e}")
 
-    # Ora puoi creare la nuova directory
+    currentTime = datetime.now().strftime("%H%M%S")
+    directory_name = f"../out/out_{currentTime}"
+
     try:
-        subprocess.run(["mkdir", directory_name], check=True, shell=True)
-        print(f"La directory '{directory_name}' è stata creata con successo.")
+        subprocess.run(["mkdir", directory_name], check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Errore durante la creazione della directory: {e}")
+        print(f"Error in creating second directory: {e}")
 
-    name = f"out/out.xlsx"
+    name = f"../out/{directory_name}/out.xlsx"
     workbook = xlsxwriter.Workbook (name)
+
     wq = workbook.add_worksheet("Quantity")
     wc = workbook.add_worksheet("Concentration")
 
+    wq.write(0, 0, "Generation")
+    loadedSpecies = list(chemicalSpecies.keys())
+    i = 1
+    for species in loadedSpecies: 
+        wq.write(0, i, species)
+        i+=1
+    wq.write(0,i,"Time")
+
+    wc.write(0, 0, "Generation")
+    i = 1
+    for species in loadedSpecies: 
+        wc.write(0, i, species)
+        i+=1
+    wc.write(0,i,"Time")
+
+    for i in range(1, len(matrixSimulation) + 1):
+        wq.write(i,0,i)
+        wc.write(i,0,i)
+
+    row=1
+    for matLine in matrixSimulation:
+        column=1
+        for value in matLine:
+            wq.write(row,column,value)
+            column+=1
+        row+=1
+
+    row=1
+    for value in np.array(timeSimulation):
+        wq.write(row,column,value)
+        row+=1
+
+    row=1
+    for matLine in matrixSimulation:
+        column=1
+        for value in matLine:
+            wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
+            column+=1
+        row+=1
+
+    row=1
+    for value in np.array(timeSimulation):
+        wc.write(row,column,value)
+        row+=1
+
+    workbook.close()

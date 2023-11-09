@@ -1,3 +1,6 @@
+import os
+import subprocess
+
 def checkProtoSim (arg, data):
     
     match arg: 
@@ -45,3 +48,12 @@ def checkProtoSim (arg, data):
         case _: 
             print ("\nUNKNOW ERROR XY")
             quit ()
+
+def resetInfo (): 
+    
+    if os.path.exists("../out"):
+        try:
+            subprocess.run(["rm", "-fr", "../out"], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error in removing the existing directory: {e}")
+    quit()
