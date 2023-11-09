@@ -30,9 +30,18 @@ git clone https://github.com/Piltxi/ProtoSim
 ### Start simulation
 
 ```
+cd src
 python3 main.py
 ```
 
+### Note
+
+To enable printing of some additional information or debug printing: 
+
+```
+cd src
+python3 main.py -v
+```
 
 
 ## ✍️ Authors <a name = "authors"></a>
