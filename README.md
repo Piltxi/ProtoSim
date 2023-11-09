@@ -91,7 +91,8 @@ python3 main.py -r
 ```
 
 ProtoSim reads the input parameters and reactions from two text files. 
-The files are located in input/ .
+The files are located in input/ . 
+You can edit them to change a parameter or insert new reactions. 
 
 ## ✍️ Authors <a name = "authors"></a>
 
