@@ -92,7 +92,7 @@ python3 main.py -r
 
 📥 To specify input file with parameters and reactions: 
 
-default: parameters in *input/parameters.txt* and reactions in *input/chimica.txt*
+default: parameters in *input/parameters.txt* and reactions in *input/chimica.txt* <br>
 ❌ respect the semantic order of parameters and values ❗
 
 ```
