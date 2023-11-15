@@ -114,7 +114,7 @@ def importParameters (verbose, file):
                     checkProtoSim (1, line)
     
     loadedSpecies = list(chemicalSpecies.keys())
-    
+     
     # Check of chemical species in the reactions
     errorsCheck.checkProtoSim(3, [loadedSpecies, reactions])
     

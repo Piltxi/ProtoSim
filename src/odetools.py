@@ -106,8 +106,8 @@ def ode_function (time, protoAct, parameters):
                 
                 term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
                 Dx[reactions[i]["in"][0]] -= term
+                Dx[reactions[i]["out"][0]] += term
                 Dx[reactions[i]["out"][1]] += term
-                Dx[reactions[i]["out"][2]] += term
             
             case chemicalio.ReactionType.CLEAVAGE_23: 
                 
