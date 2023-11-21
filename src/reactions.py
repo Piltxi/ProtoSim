@@ -4,11 +4,11 @@ from errorsCheck import checkProtoSim
 
 class ReactionType (Enum): 
     
-    CONDENSATION_21 = "Condensation: II>O"
-    CONDENSATION_22 = "Condensation: II>OO"
+    CONDENSATION_21 = "Condensation 2:1"
+    CONDENSATION_22 = "Condensation 2:2"
 
-    CLEAVAGE_12 = "Cleavage: I>OO"
-    CLEAVAGE_23 = "Cleavage: II>OOO"
+    CLEAVAGE_12 = "Cleavage 1:2"
+    CLEAVAGE_23 = "Cleavage 2:2"
     
     DIFFUSION = "Diffusion"
 

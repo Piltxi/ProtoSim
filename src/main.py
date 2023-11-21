@@ -1,5 +1,4 @@
 import argparse
-from click import File
 import numpy as np
 
 from chemicalio import importParameters, excelExport, printInfo
@@ -35,9 +34,9 @@ def main(verbose, reset, file):
 
     (timeSimulation, matrixSimulation) = simulation (verbose, environment, parameters, chemicalSpecies, reactions)
 
-   # printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation)
+    printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation)
 
-    excelExport(matrixSimulation, timeSimulation, chemicalSpecies, [parameters, environment])
+    excelExport(matrixSimulation, timeSimulation, chemicalSpecies, [parameters, environment, reactions])
 
 
 if __name__ == "__main__":
@@ -51,3 +50,15 @@ if __name__ == "__main__":
 
     main(args.verbose, args.reset, args.file)
 
+""""
+#! to do: 
+1. copia dei parametri nei file di uscita
+2. salvataggio dati su excel prima di chiusura
+3. cambiare il sistema della memoria per memorizzare solo ultima riga di ultima gneerazione ( a scelta)
+4. aggiunta flussi di controllo cstr con sintassi: 
+>a; param (i)
+b> ; param (k)
+
+Si introducono due reazioni in più all'interno di ode, che simulano in autonomia il cstr. 
+Sistemare generazione da espandere
+"""
