@@ -23,7 +23,7 @@ def checkProtoSim (arg, data):
             for reaction in data[1]:
                 reactants = reaction["in"]
                 products = reaction["out"]
-            
+        
                 for specie in reactants + products:
                     if specie not in data[0]: 
                         try: 

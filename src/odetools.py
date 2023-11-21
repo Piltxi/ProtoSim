@@ -87,6 +87,13 @@ def ode_function (time, protoAct, parameters):
     for i in range(len(reactions)):
         
         match reactions[i]["type"]:
+
+            case chemicalio.ReactionType.FLOWIN: 
+                # term = reactions[i]["k"] * protoX[reactions[i]["out"][0]]
+
+            case chemicalio.ReactionType.FLOWOUT: 
+                term = reactions[i]["k"] * protoX[reactions[i]["out"][0]]
+
             case chemicalio.ReactionType.CONDENSATION_21: 
                 
                 term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX [reactions[i]["in"][1]] / (parameters[0][0] * pow (protoX[0], 1.5))

@@ -12,22 +12,33 @@ class ReactionType (Enum):
     
     DIFFUSION = "Diffusion"
 
+    FLOWIN = "in-CSTR"
+    FLOWOUT = "CSTR-out"
+
     ND = "Undefined Type"
+
 
 def identifyType (reaction, verbose): 
 
-    reactionsParts = reaction.split(">")
-   
-    reactants = reactionsParts[0].strip()
-    products = reactionsParts[1].strip()
+    reactionsParts = reaction.strip().split(";")
+    reaction_str = reactionsParts[0].strip()
+    reagents, products = reaction_str.split('>')
     
-    nReactans = len (reactants.split ("+"))
-    nProducts = len (products.split ("+"))
+    reagents = [reagent.strip() for reagent in reagents.split('+')]
+    products = [product.strip() for product in products.split('+')]
+
+    nReactans = len (reagents)
+    nProducts = len (products)
 
     if verbose: 
         print(f"Identifying Reaction Type: {nReactans};{nProducts}")
 
+    if nProducts == 1 and products[0] == '':
+        return ReactionType.FLOWIN
+
     if nReactans == 1: 
+        if reagents[0] == '':
+            return ReactionType.FLOWOUT
         if nProducts == 1: 
             return ReactionType.DIFFUSION
         if nProducts == 2: 

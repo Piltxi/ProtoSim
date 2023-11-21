@@ -5,9 +5,9 @@ import xlsxwriter
 from datetime import datetime
 from errorsCheck import checkProtoSim
 
-from reactions import ReactionType, identifyType
+from reactions import identifyType, ReactionType
 import errorsCheck
-
+ 
 def getConcentration(x, C, ro, delta):
     return x / getVolume(C, ro, delta)
 
@@ -103,9 +103,9 @@ def importParameters (verbose, file):
                         "k": coefficient,
                         "type": reactionType
                     }
-                    
+                
                     if verbose: 
-                        print ("reactants: ", reagents, "|products: ", products, "|type: ", reactionType.name, "|Coefficient: ", coefficient, end=" \t|")
+                        print ("reactants: ", reagents, "|products: ", products, "|type: ", reactionType.value, "|Coefficient: ", coefficient, end=" \t|")
                         print ("end import")
                     
                     reactions.append(reaction_data)
