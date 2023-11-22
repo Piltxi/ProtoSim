@@ -1,7 +1,6 @@
 import numpy as np
 import time
 from tqdm import tqdm
-import xlsxwriter
 
 import chemicalio
 from reactions import ReactionType
@@ -216,59 +215,64 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
     if not verbose:
         progress_bar = tqdm(total=nIterates, desc="Simulating", unit="generation", position=0, dynamic_ncols=True)
 
-    for i in range(nIterates):
+    try: 
+        for i in range(nIterates):
+            
+            if verbose: 
+                print ("Start generation n.", i+1)
+
+            # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
+            startTime = time.time()
+            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient)
+            endTime = time.time()
+
+            #print ("Duplication Time: ", solverTime[-1])
+
+            executionTime = endTime - startTime
+            if verbose: 
+                if executionTime > 60:
+                    minutes=int(executionTime/60)
+                    seconds=round(executionTime%60)
+                    print(f"Duplication Time: ", solverTime[-1], f" | Time spent {minutes}:{seconds} minutes")
+                else:  
+                    print(f"Duplication Time: ", solverTime[-1], f" | time spent {round(executionTime)} seconds") 
+            
+            # About last generation 
+            protoGen = np.copy (y_sol[-1])
         
-        if verbose: 
-            print ("Start generation n.", i+1)
-
-        # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
-        startTime = time.time()
-        (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient)
-        endTime = time.time()
-
-        #print ("Duplication Time: ", solverTime[-1])
-
-        executionTime = endTime - startTime
-        if verbose: 
-            if executionTime > 60:
-                minutes=int(executionTime/60)
-                seconds=round(executionTime%60)
-                print(f"Duplication Time: ", solverTime[-1], f" | Time spent {minutes}:{seconds} minutes")
-            else:  
-                print(f"Duplication Time: ", solverTime[-1], f" | time spent {round(executionTime)} seconds") 
+            if verbose: 
+                print ("End generation n.", i+1, "\t", protoGen, "\n")
         
-        # About last generation 
-        protoGen = np.copy (y_sol[-1])
-    
-        if verbose: 
-            print ("End generation n.", i+1, "\t", protoGen, "\n")
-    
-        time_ += [solverTime[-1]]
-        mat += [np.copy(protoGen)]
+            time_ += [solverTime[-1]]
+            mat += [np.copy(protoGen)]
 
-        wq.write(i+1, 0, i+1)
-        for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
-            wq.write(i+1, j, protoGen[j-1])
-        wq.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
+            wq.write(i+1, 0, i+1)
+            for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
+                wq.write(i+1, j, protoGen[j-1])
+            wq.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
 
-        wc.write(i+1, 0, i+1)
-        for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
-            wc.write(i+1, j, chemicalio.getConcentration (protoGen[j-1], protoGen[0], parameters[2], parameters[1]))
-        wc.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
+            wc.write(i+1, 0, i+1)
+            for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
+                wc.write(i+1, j, chemicalio.getConcentration (protoGen[j-1], protoGen[0], parameters[2], parameters[1]))
+            wc.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
 
-        # Duplication
-        protoGen[0] = protoGen[0]/2.
-        
-        # Without Flux Analysis
-        for i in range(1,len(protoGen)-nFlux):
-            protoGen[i]=protoGen[i]*calving
-        
-        # With Flux Analysis
-        for i in range(nFlux):
-            protoGen[-1-i] = 0 
-        
-        if not verbose:
-            progress_bar.update(1)
+            # Duplication
+            protoGen[0] = protoGen[0]/2.
+            
+            # Without Flux Analysis
+            for i in range(1,len(protoGen)-nFlux):
+                protoGen[i]=protoGen[i]*calving
+            
+            # With Flux Analysis
+            for i in range(nFlux):
+                protoGen[-1-i] = 0 
+            
+            if not verbose:
+                progress_bar.update(1)
+    except KeyboardInterrupt:
+        workbook.close()
+        print ("\nimproper shutdown - current simulation exported successfully")
+        quit()
 
     if not verbose:
         progress_bar.close()
