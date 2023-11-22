@@ -1,8 +1,6 @@
 import numpy as np
 import time
 from tqdm import tqdm
-from tqdm import trange
-import sys
 
 import chemicalio
 from errorsCheck import checkProtoSim
