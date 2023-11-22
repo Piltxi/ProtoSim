@@ -269,6 +269,7 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
             
             if not verbose:
                 progress_bar.update(1)
+    
     except KeyboardInterrupt:
         workbook.close()
         print ("\nimproper shutdown - current simulation exported successfully")
