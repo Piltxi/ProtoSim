@@ -373,7 +373,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     for matLine in matrixSimulation:
         column=1
         for value in matLine:
-            wq.write(row,column,value)
+            wq.write(row, column, value)
             column+=1
         row+=1
 
@@ -392,7 +392,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
 
     row=1
     for value in np.array(timeSimulation):
-        wc.write(row,column,value)
+        wc.write(row, column, value)
         row+=1
 
     wc.set_default_row(hide_unused_rows=True)
