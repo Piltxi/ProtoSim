@@ -100,6 +100,13 @@ cd src
 python3 main.py -f
 ```
 
+📥 To ONLY check the correct import of the parameters:
+
+```
+cd src
+python3 main.py -i
+```
+
 ProtoSim reads the input parameters and reactions from two text files. 
 The files are located in input/ . 
 You can edit them to change a parameter or insert new reactions. 
