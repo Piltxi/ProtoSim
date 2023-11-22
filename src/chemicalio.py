@@ -237,7 +237,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         except subprocess.CalledProcessError as e:
             print(f"Error in creating second directory: {e}")
 
-    currentTime = datetime.now().strftime("%H.%M")
+    currentTime = datetime.now().strftime("%H.%M.%S")
     name = f"../out/{directory_name}/out {currentTime}.xlsx"
     workbook = xlsxwriter.Workbook (name)
 
