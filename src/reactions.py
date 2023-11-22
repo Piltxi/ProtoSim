@@ -1,5 +1,4 @@
 from enum import Enum
-
 from errorsCheck import checkProtoSim
 
 class ReactionType (Enum): 
@@ -17,7 +16,6 @@ class ReactionType (Enum):
 
     ND = "Undefined Type"
 
-
 def identifyType (reaction, verbose): 
 
     reactionsParts = reaction.strip().split(";")
@@ -34,11 +32,11 @@ def identifyType (reaction, verbose):
         print(f"Identifying Reaction Type: {nReactans};{nProducts}")
 
     if nProducts == 1 and products[0] == '':
-        return ReactionType.FLOWIN
+        return ReactionType.FLOWOUT
 
     if nReactans == 1: 
         if reagents[0] == '':
-            return ReactionType.FLOWOUT
+            return ReactionType.FLOWIN
         if nProducts == 1: 
             return ReactionType.DIFFUSION
         if nProducts == 2: 

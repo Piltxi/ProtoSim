@@ -89,10 +89,13 @@ def ode_function (time, protoAct, parameters):
         match reactions[i]["type"]:
 
             case chemicalio.ReactionType.FLOWIN: 
-                # term = reactions[i]["k"] * protoX[reactions[i]["out"][0]]
+                
+                protoX[reactions[i]["out"][0]] =+ reactions[i]["k"]
 
             case chemicalio.ReactionType.FLOWOUT: 
-                term = reactions[i]["k"] * protoX[reactions[i]["out"][0]]
+
+                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
+                protoX[reactions[i]["in"][0]] =- term
 
             case chemicalio.ReactionType.CONDENSATION_21: 
                 

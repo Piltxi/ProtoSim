@@ -3,10 +3,9 @@ import subprocess
 import os
 import xlsxwriter
 from datetime import datetime
-from errorsCheck import checkProtoSim
 
+from errorsCheck import checkProtoSim
 from reactions import identifyType, ReactionType
-import errorsCheck
  
 def getConcentration(x, C, ro, delta):
     return x / getVolume(C, ro, delta)
@@ -41,20 +40,18 @@ def importParameters (verbose, file):
     toll_min = eval(fi.readline().split()[0])
     toll_max = eval(fi.readline().split()[0])
     nFlux = eval(fi.readline().split()[0]) 
-    nGen = eval(fi.readline().split()[0])
+    gen_exp = eval(fi.readline().split()[0])
 
     fi.close()
 
     calving = 0.353553
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))
-    # print ("chi main: ", chi)
-    t_start = 0.
 
     # List of parameters to resolve ODE
     parameters = [chi, delta, ro, k, Da, As, div]
 
     # List of environment sets
-    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen, calving]; 
+    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving]; 
     
     chemicalSpecies = {}
     reactions = []
@@ -116,26 +113,19 @@ def importParameters (verbose, file):
     loadedSpecies = list(chemicalSpecies.keys())
      
     # Check of chemical species in the reactions
-    errorsCheck.checkProtoSim(3, [loadedSpecies, reactions])
-    
+    checkProtoSim(3, [loadedSpecies, reactions])
     
     return [parameters, environment, chemicalSpecies, reactions]
 
 def printInfo (parameters, environment, chemicalSpecies, reactions): 
 
-    sAlpha = "\u03B1"
-    sEta = "\u03b7"
     sDelta = "\u03b4"
-    sMu = "\u03bc"
     sRo = "\u03c1"
     sChi = "\u03c7"
-    sPi = "\u03c0"
-    sNu = "\u03bd"
-    sBChi = "\u03a7"
     sKappa = "\u039a"
 
     chi, delta, ro, k, Da, As, div = parameters
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen, calving = environment
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
 
     print ("\nSTART PRINTING INFO...\n")
 
@@ -149,12 +139,12 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
 
     print("\nExecution Parameters:")
     print("flux:\t",nFlux)
-    print("generations:\t",nGen)
     print("iterations:\t", nIterates)
     print("calving:\t", calving)
     print("end time:\t",t_end)
     print("max  step:\t",max_step)       
     print("min toll. :",toll_min, "\tmax toll. :",toll_max)
+    print("generation to expand:\t", gen_exp)
 
     print("\nChemical Species imported:")
     i = 0
@@ -167,14 +157,16 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     for i, reaction in enumerate (reactions): 
         reagents_str = " + ".join(reaction["in"])
         products_str = " + ".join(reaction["out"])
-        print (f"{i+1}] {reagents_str} -> {products_str}\nKinetic Coefficient: ", reaction["k"], "\tType: ", reaction["type"].value, "\n")
 
-    protoGen = np.array([chemicalSpecies[quantity][0] for quantity in chemicalSpecies])
-    loadedSpecies = list(chemicalSpecies.keys())
-    
-    # mapReactions = map_species_to_indices(reactions, protoGen, loadedSpecies)
-    # print("\nReactions [index print]:")
-    # printMapReactions(mapReactions)
+        if reaction["type"] is not ReactionType.FLOWIN and reaction["type"] is not ReactionType.FLOWOUT:
+            print (f"{i+1}] {reagents_str} -> {products_str}\nKinetic Coefficient: ", reaction["k"], "\tType: ", reaction["type"].value, "\n")
+
+        else: 
+            arrow =" \u2192 "
+            if reaction["type"] is ReactionType.FLOWIN: 
+                print (f"{i+1}] {products_str} {arrow} [CSTR] \nSubstance Fraction: ", reaction["k"], "\tType: ", reaction["type"].value, "\n")
+            else: 
+                print (f"{i+1}] [CSTR] {arrow} {reagents_str}\nSubstance Fraction: ", reaction["k"], "\tType: ", reaction["type"].value, "\n")
 
     print ("\nEND PRINTING INFO...\n")
 
@@ -228,15 +220,16 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         except subprocess.CalledProcessError as e:
             print(f"Error in creating the directory: {e}")
 
-    currentTime = datetime.now().strftime("%H%M%S")
-    directory_name = f"../out/out_{currentTime}"
+    currentData = datetime.now().strftime("%d.%m")
+    currentTime = datetime.now().strftime("%H.%M")
+    directory_name = f"../out/out {currentData}"
 
     try:
         os.makedirs(directory_name)
     except subprocess.CalledProcessError as e:
         print(f"Error in creating second directory: {e}")
 
-    name = f"../out/{directory_name}/out.xlsx"
+    name = f"../out/{directory_name}/out {currentTime}.xlsx"
     workbook = xlsxwriter.Workbook (name)
 
     #* global settings of excel export
@@ -263,9 +256,8 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
 
     #* export parameters
     chi, delta, ro, k, Da, As, div = allParameters[0]
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen, calving = allParameters[1]
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = allParameters[1]
     reactions = allParameters[2]
-
 
     data = {
         "\u03b4": delta,
@@ -276,7 +268,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         "Da": Da,
         "Div": div,
         "flux": nFlux,
-        "generations": nGen,
+        "generations": gen_exp,
         "iterations": nIterates,
         "calving": calving,
         "end time": t_end,
