@@ -59,7 +59,7 @@ def callOdeSolver (ode_function, time, protoAct, parameters, mapReactions, delta
 
     for i in range(len(protoAct[1]) - nFlux):
         if protoAct[1][i]<0:
-            checkProtoSim (4, protoAct[1][i])
+            checkProtoSim (4, [protoAct[1][i], i])
     
     var = ode_function (time, protoAct, [parameters, mapReactions])
 
@@ -221,12 +221,9 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
     protoInit = np.array([chemicalSpecies[quantity][0] for quantity in chemicalSpecies])
 
     loadedSpecies = list(chemicalSpecies.keys())
-    mapReactions = chemicalio.map_species_to_indices(reactions, protoGen, loadedSpecies)
+    mapReactions = chemicalio.map_species_to_indices(reactions, loadedSpecies)
 
     coefficient = np.array ([chemicalSpecies[coefficient][1] for coefficient in chemicalSpecies])
-
-    # for element in coefficient: 
-    #     print ("Coefficiente associato: ", element, "\n")
 
     time_ = []
     mat = []

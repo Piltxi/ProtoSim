@@ -127,9 +127,7 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     chi, delta, ro, k, Da, As, div = parameters
     nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
 
-    print ("\nSTART PRINTING INFO...\n")
-
-    print("Recognized Parameters:")
+    print("\nRecognized Parameters:")
     print(sDelta, ":\t", delta)
     print(sRo, ":\t", ro)
     print (sChi, ":\t", chi)
@@ -170,24 +168,35 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
 
     print ("\nEND PRINTING INFO...\n")
 
-def map_species_to_indices(reactions, protoGen, loadedSpecies):
+def map_species_to_indices(reactions, loadedSpecies):
     index_based_reactions = []
 
     for reaction in reactions:
         indexed_reagents = []
         indexed_products = []
 
-        for reagent in reaction["in"]:
-            if reaction["type"] == ReactionType.DIFFUSION:
-                indexed_reagents.append(float(reaction["in"][0]))
-            elif reagent in loadedSpecies:
-                indexed_reagents.append(loadedSpecies.index(reagent))
+        if reaction["type"] == ReactionType.FLOWIN or reaction["type"] == ReactionType.FLOWOUT: 
 
-        for product in reaction["out"]:
-            if product in loadedSpecies:
-                indexed_products.append(loadedSpecies.index(product))
-            else:
-                checkProtoSim (6, product)
+            if reaction["type"] == ReactionType.FLOWIN: 
+                indexed_reagents.append(None)
+                indexed_products.append(loadedSpecies.index(reaction["out"][0]))
+
+            if reaction["type"] == ReactionType.FLOWOUT: 
+                indexed_products.append(None)
+                indexed_reagents.append(loadedSpecies.index(reaction["in"][0]))
+
+        else: 
+            for reagent in reaction["in"]:
+                if reaction["type"] == ReactionType.DIFFUSION:
+                    indexed_reagents.append(float(reaction["in"][0]))
+                elif reagent in loadedSpecies:
+                    indexed_reagents.append(loadedSpecies.index(reagent))
+
+            for product in reaction["out"]:
+                if product in loadedSpecies:
+                    indexed_products.append(loadedSpecies.index(product))
+                else:
+                    checkProtoSim (6, product)
 
         indexed_reaction = {
             "in": indexed_reagents,
@@ -211,7 +220,6 @@ def printMapReactions (mapReactions):
 def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameters): 
 
     #* path directory definition
-
     directory_name = "../out"
 
     if not os.path.exists(directory_name):
@@ -221,14 +229,15 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
             print(f"Error in creating the directory: {e}")
 
     currentData = datetime.now().strftime("%d.%m")
-    currentTime = datetime.now().strftime("%H.%M")
     directory_name = f"../out/out {currentData}"
 
-    try:
-        os.makedirs(directory_name)
-    except subprocess.CalledProcessError as e:
-        print(f"Error in creating second directory: {e}")
+    if not os.path.exists(directory_name):
+        try:
+            os.makedirs(directory_name)
+        except subprocess.CalledProcessError as e:
+            print(f"Error in creating second directory: {e}")
 
+    currentTime = datetime.now().strftime("%H.%M")
     name = f"../out/{directory_name}/out {currentTime}.xlsx"
     workbook = xlsxwriter.Workbook (name)
 

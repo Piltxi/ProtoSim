@@ -51,16 +51,17 @@ def checkProtoSim (arg, data):
                             quit()
 
         case 4: 
-            print ("\nERROR 04 - negative quantities detected")
-            print ("Data: ", data)
+            print ("\nERROR 04 - negative quantities detected\n")
+            print ("Value: ", data[0], "\tIndex: ", data[1], "\n")
             quit()
 
         case 5: 
-            print ("\nERROR 05 - ode_function error")
-            print ("Data: ", data)
+            print ("\nERROR 05 - ode_function, unknow variation rules for ", data["type"])
+            quit()
 
         case 6: 
-            print (f"\nERROR 06 - conversion dictionary '{data}'")
+            print (f"\nERROR 06 - indexing reactions '{data}'")
+            quit()
 
         case _: 
             print ("\nUNKNOW ERROR XY")
