@@ -166,8 +166,6 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
             else: 
                 print (f"{i+1}] [CSTR] {arrow} {reagents_str}\nSubstance Fraction: ", reaction["k"], "\tType: ", reaction["type"].value, "\n")
 
-    print ("\nEND PRINTING INFO...\n")
-
 def map_species_to_indices(reactions, loadedSpecies):
     index_based_reactions = []
 
@@ -238,7 +236,7 @@ def excelInit (chemicalSpecies, allParameters):
             print(f"Error in creating second directory: {e}")
 
     currentTime = datetime.now().strftime("%H.%M.%S")
-    name = f"../out/{directory_name}/init {currentTime}.xlsx"
+    name = f"../out/{directory_name}/sim {currentTime}.xlsx"
     workbook = xlsxwriter.Workbook (name)
 
     #* global settings of excel export
