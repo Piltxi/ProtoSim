@@ -17,7 +17,7 @@ nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = enviro
 
 def printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation): 
 
-    print ("___END SIMULATION___")
+    print ("\n->END SIMULATION<-")
     printInfo(parameters, environment, chemicalSpecies, reactions)
 
 

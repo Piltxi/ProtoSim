@@ -1,5 +1,8 @@
 import numpy as np
 import time
+from tqdm import tqdm
+from tqdm import trange
+import sys
 
 import chemicalio
 from errorsCheck import checkProtoSim
@@ -231,7 +234,10 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
     t_start = 0.
     nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen, calving = environment
 
-    for i in range (nIterates): 
+    if not verbose:
+        progress_bar = tqdm(total=nIterates, desc="Simulating", unit="generation", position=0, dynamic_ncols=True)
+
+    for i in range(nIterates):
         
         if verbose: 
             print ("Start generation n.", i+1)
@@ -271,5 +277,11 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
         # With Flux Analysis
         for i in range(nFlux):
             protoGen[-1-i] = 0 
+        
+        if not verbose:
+            progress_bar.update(1)
+
+    if not verbose:
+        progress_bar.close()
 
     return (time_, mat)
