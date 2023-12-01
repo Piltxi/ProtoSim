@@ -21,7 +21,7 @@ def printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixS
     printInfo(parameters, environment, chemicalSpecies, reactions)
 
 
-def main(verbose, reset, file, importView):
+def main(verbose, reset, file, importView, ecomode):
 
     if reset: 
         resetInfo()
@@ -35,7 +35,7 @@ def main(verbose, reset, file, importView):
     if verbose:
         printInfo(parameters, environment, chemicalSpecies, reactions)
 
-    (timeSimulation, matrixSimulation) = simulation (verbose, environment, parameters, chemicalSpecies, reactions)
+    (timeSimulation, matrixSimulation) = simulation (verbose, environment, parameters, chemicalSpecies, reactions, ecomode)
 
     printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation)
 
@@ -51,5 +51,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.verbose, args.reset, args.file, args.importV)
+    main(args.verbose, args.reset, args.file, args.importV, args.eco)
 

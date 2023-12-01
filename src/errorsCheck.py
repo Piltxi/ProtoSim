@@ -64,7 +64,7 @@ def checkProtoSim (arg, data):
             quit()
 
         case 7: 
-            
+
             if data [0] == -1: 
                 return
 
