@@ -145,7 +145,7 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     print("end time:\t",t_end)
     print("max  step:\t",max_step)       
     print("min toll. :",toll_min, "\tmax toll. :",toll_max)
-    print("generation to expand:\t", gen_exp)
+    print("generation to expand:\t", gen_exp:=gen_exp+1)
 
     print("\nChemical Species imported:")
     i = 0
@@ -279,7 +279,7 @@ def excelInit (chemicalSpecies, allParameters):
         "Da": Da,
         "Div": div,
         "flux": nFlux,
-        "generations": gen_exp,
+        "gen. to expand": (gen_exp:=gen_exp+1),
         "iterations": nIterates,
         "calving": calving,
         "end time": t_end,
@@ -435,7 +435,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         "Da": Da,
         "Div": div,
         "flux": nFlux,
-        "generations": gen_exp,
+        "gen. to expand": (gen_exp:=gen_exp+1),
         "iterations": nIterates,
         "calving": calving,
         "end time": t_end,

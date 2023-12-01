@@ -142,11 +142,7 @@ def ode_function (time, protoAct, parameters):
 
 def solver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
 
-    verbose, ECO = userCheck
-
-    if ECO: 
-        if verbose: 
-            print ("\neco mode activated\n")
+    verbose, ecomode = userCheck
 
     deltaT = min (maxStep/10., interval[1]/10.)
     
@@ -160,7 +156,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
             if protoAct[i]<0: 
                     protoAct[i] = 0 
  
-    if not ECO:
+    if not ecomode:
         tempi = []
         y = []    
         
@@ -193,7 +189,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
 
         t += deltaT
         
-        if not ECO:
+        if not ecomode:
             tempi += [t]
             y += [protoNext]
 
@@ -203,66 +199,66 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
             print ("End; ", t, interval[1])
             break
     
-    if not ECO: 
+    if not ecomode: 
         return (tempi, y)
     
     else:
         return (t, protoAct)
 
+""""
+def ECOsolver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
 
-# def ECOsolver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
+    verbose, ecomode = userCheck
 
-#     verbose, ECO = userCheck
+    if ecomode: 
+        if verbose: 
+            print ("\neco mode activated\n")
 
-#     if ECO: 
-#         if verbose: 
-#             print ("\neco mode activated\n")
-
-#     deltaT = min (maxStep/10., interval[1]/10.)
+    deltaT = min (maxStep/10., interval[1]/10.)
     
-#     # Start of current simulation
-#     t = interval[0]
+    # Start of current simulation
+    t = interval[0]
     
-#     protoAct = protoGen[1][:] 
+    protoAct = protoGen[1][:] 
 
-#     # Resolution of negative quantities
-#     for i in range (len(protoAct)-nFlux):
-#             if protoAct[i]<0: 
-#                     protoAct[i] = 0 
+    # Resolution of negative quantities
+    for i in range (len(protoAct)-nFlux):
+            if protoAct[i]<0: 
+                    protoAct[i] = 0 
     
-#     seconds = 0.01
+    seconds = 0.01
 
-#     while divisionTest (t, protoAct, parameters):
+    while divisionTest (t, protoAct, parameters):
         
-#         # if t > seconds: 
-#         #     print (t, protoAct)
+        # if t > seconds: 
+        #     print (t, protoAct)
         
-#         var = callOdeSolver (ode_function, t, [coefficient, protoAct], parameters, mapReactions, deltaT, nFlux)
+        var = callOdeSolver (ode_function, t, [coefficient, protoAct], parameters, mapReactions, deltaT, nFlux)
         
-#         protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
+        protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
 
-#         if not tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
-#             deltaT *= 1.2
-#             if deltaT > maxStep:
-#                 deltaT = maxStep
+        if not tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
+            deltaT *= 1.2
+            if deltaT > maxStep:
+                deltaT = maxStep
             
-#         while tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
-#             deltaT /= 2
-#             protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
+        while tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
+            deltaT /= 2
+            protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
 
-#         if t+deltaT > interval [1]:
-#             deltaT = interval[1]-t
+        if t+deltaT > interval [1]:
+            deltaT = interval[1]-t
 
-#         t += deltaT
+        t += deltaT
 
-#         protoAct = protoNext [:]
+        protoAct = protoNext [:]
 
-#         if t >= interval [1]: 
-#             print ("End; ", t, interval[1])
-#             break
+        if t >= interval [1]: 
+            print ("End; ", t, interval[1])
+            break
     
-#     return (t, protoAct)
-
+    return (t, protoAct)
+"""
 
 def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ecomode): 
 
@@ -286,10 +282,20 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
         progress_bar = tqdm(total=nIterates, desc="Simulating", unit="generation", position=0, dynamic_ncols=True)
 
     try: 
+        
+        ecomodeHistory = ecomode
+        controlIndex = -1
+        
         for i in range(nIterates):
 
             if verbose: 
                 print ("Start generation n.", i+1)
+
+            if i == gen_exp: 
+                if ecomodeHistory:
+                    if verbose:
+                        print ("\n\t!]eco mode de-activated: expansion of imported generation.")
+                    ecomode = False
 
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
@@ -299,44 +305,67 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
             #print ("Duplication Time: ", solverTime[-1])
             
             if i == gen_exp: 
-                
-                if verbose: 
-                    print ("\nexpansion of imported generation...\n")
-                
+                controlIndex=i
                 excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], [1, "expand"])
+                if verbose: 
+                    print ("\n\t!]expansion of imported generation exported.\n")
 
             executionTime = endTime - startTime
+            
+            
             if verbose: 
+
+                if ecomode:
+                    print(f"Duplication Time: ", solverTime, end="")
+                else: 
+                    print(f"Duplication Time: ", solverTime[-1], end = "")
+
                 if executionTime > 60:
                     minutes=int(executionTime/60)
                     seconds=round(executionTime%60)
-                    print(f"Duplication Time: ", solverTime[-1], f" | Time spent {minutes}:{seconds} minutes")
+                    print(f"| Time spent {minutes}:{seconds} minutes")
                 else:  
-                    print(f"Duplication Time: ", solverTime[-1], f" | time spent {round(executionTime)} seconds") 
+                   print(f"| Time spent {round(executionTime)} seconds") 
             
             # About last generation 
-            protoGen = np.copy (y_sol[-1])
-        
-            if verbose: 
-                print ("End generation n.", i+1, "\t", protoGen, "\n")
+            # protoGen = np.copy (y_sol[-1])
         
             if ecomode:
                 time_ += [solverTime]
+                protoGen = np.copy (y_sol)
             else:
                 time_ += [solverTime[-1]]
+                protoGen = np.copy (y_sol[-1])
+
+            if verbose: 
+                print ("End generation n.", i+1, "\t", protoGen, "\n")
 
             # time_ += [solverTime[-1]]
             # mat += [np.copy(protoGen)]
 
+            if i == gen_exp:
+                cell_format = workbook.add_format({'bg_color': '#FFFF00'})
+                index = i
+                wq.set_row(index+1, None, cell_format)
+                wc.set_row(index+1, None, cell_format)
+
             wq.write(i+1, 0, i+1)
             for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
                 wq.write(i+1, j, protoGen[j-1])
-            wq.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
+            
+            if ecomode: 
+                wq.write(i + 1, len(chemicalSpecies) + 1, solverTime)
+            else:
+                wq.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
 
             wc.write(i+1, 0, i+1)
             for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
                 wc.write(i+1, j, getConcentration (protoGen[j-1], protoGen[0], parameters[2], parameters[1]))
-            wc.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
+            
+            if ecomode: 
+                wc.write(i + 1, len(chemicalSpecies) + 1, solverTime)
+            else:
+                wc.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
 
             # Duplication
             protoGen[0] = protoGen[0]/2.
@@ -351,7 +380,19 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
             
             if not verbose:
                 progress_bar.update(1)
-    
+
+            if controlIndex == gen_exp: 
+                if not ecomode: 
+                    if ecomodeHistory:
+                        if verbose:
+                            print ("\n\t!]eco mode re-activated\n")
+                        ecomodeHistory = False
+                        ecomode = True
+                
+                if ecomode:
+                    if ecomodeHistory:
+                        print ("\n\t!]eco mode unchanged\n")
+            
     except KeyboardInterrupt:
         
         if not verbose:
