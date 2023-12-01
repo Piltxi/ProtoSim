@@ -44,8 +44,8 @@ def importParameters (verbose, file):
 
     fi.close()
 
-    if gen_exp != -1: 
-        checkProtoSim(7, [gen_exp, nIterates])
+    checkProtoSim(7, [gen_exp, nIterates])
+    gen_exp -= 1
 
     calving = 0.353553
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))

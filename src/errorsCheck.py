@@ -64,7 +64,7 @@ def checkProtoSim (arg, data):
             quit()
 
         case 7: 
-            if data[0] != -1 and data[0] > data[1]:
+            if data[0] < 1 or data[0] > data[1]:
                 print (f"\nERROR 07 - loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
                 quit()
 
