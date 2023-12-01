@@ -106,6 +106,12 @@ python3 main.py -f
 cd src
 python3 main.py -i
 ```
+📥 To save RAM memory during simulations:
+*this disables saving the data of each individual generation*
+```
+cd src
+python3 main.py -e
+```
 
 ProtoSim reads the input parameters and reactions from two text files. 
 The files are located in input/ . 
