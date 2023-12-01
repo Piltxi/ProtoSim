@@ -2,7 +2,7 @@ import numpy as np
 import time
 from tqdm import tqdm
 
-import chemicalio
+from chemicalio import excelExport, excelInit, map_species_to_indices, getConcentration
 from reactions import ReactionType
 from errorsCheck import checkProtoSim
 
@@ -12,8 +12,8 @@ parameters = allParameters[0]
 chi, delta, ro, k, Da, As, div = parameters
 
 environment = allParameters [1]
-# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen, calving = environment
+# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
 """
 
 def scalar_multiply(vector, scalar):
@@ -196,28 +196,28 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
 
 def simulation (verbose, environment, parameters, chemicalSpecies, reactions): 
 
-    workbook, wc, wq = chemicalio.excelInit(chemicalSpecies, [parameters, environment, reactions])
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
+
+    # Preparing to directly export data to the csv file.
+    workbook, wc, wq = excelInit(chemicalSpecies, [parameters, environment, reactions])
 
     protoGen = np.array([chemicalSpecies[quantity][0] for quantity in chemicalSpecies])
     protoInit = np.array([chemicalSpecies[quantity][0] for quantity in chemicalSpecies])
-
     loadedSpecies = list(chemicalSpecies.keys())
-    mapReactions = chemicalio.map_species_to_indices(reactions, loadedSpecies)
-
+    mapReactions = map_species_to_indices(reactions, loadedSpecies)
     coefficient = np.array ([chemicalSpecies[coefficient][1] for coefficient in chemicalSpecies])
 
     time_ = []
     mat = []
     
     t_start = 0.
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, nGen, calving = environment
 
     if not verbose:
         progress_bar = tqdm(total=nIterates, desc="Simulating", unit="generation", position=0, dynamic_ncols=True)
 
     try: 
         for i in range(nIterates):
-            
+
             if verbose: 
                 print ("Start generation n.", i+1)
 
@@ -227,6 +227,9 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
             endTime = time.time()
 
             #print ("Duplication Time: ", solverTime[-1])
+            
+            if i == gen_exp: 
+                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], [1, "expand"])
 
             executionTime = endTime - startTime
             if verbose: 
@@ -253,7 +256,7 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
 
             wc.write(i+1, 0, i+1)
             for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
-                wc.write(i+1, j, chemicalio.getConcentration (protoGen[j-1], protoGen[0], parameters[2], parameters[1]))
+                wc.write(i+1, j, getConcentration (protoGen[j-1], protoGen[0], parameters[2], parameters[1]))
             wc.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
 
             # Duplication
@@ -271,6 +274,10 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
                 progress_bar.update(1)
     
     except KeyboardInterrupt:
+        
+        if not verbose:
+            progress_bar.close()
+        
         workbook.close()
         print ("\nimproper shutdown - current simulation exported successfully")
         quit()

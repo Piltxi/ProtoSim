@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 
-from chemicalio import importParameters, excelExport, printInfo
+from chemicalio import importParameters, printInfo
 from odetools import simulation
 from errorsCheck import resetInfo
 
@@ -38,8 +38,6 @@ def main(verbose, reset, file, importView):
     (timeSimulation, matrixSimulation) = simulation (verbose, environment, parameters, chemicalSpecies, reactions)
 
     printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation)
-
-    excelExport(matrixSimulation, timeSimulation, chemicalSpecies, [parameters, environment, reactions])
 
 
 if __name__ == "__main__":

@@ -44,6 +44,9 @@ def importParameters (verbose, file):
 
     fi.close()
 
+    if gen_exp != -1: 
+        checkProtoSim(7, [gen_exp, nIterates])
+
     calving = 0.353553
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))
 
@@ -372,7 +375,7 @@ def excelInit (chemicalSpecies, allParameters):
 
     return workbook, wc, wq
 
-def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameters): 
+def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameters, refName): 
 
     #* path directory definition
     directory_name = "../out"
@@ -393,7 +396,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
             print(f"Error in creating second directory: {e}")
 
     currentTime = datetime.now().strftime("%H.%M.%S")
-    name = f"../out/{directory_name}/out {currentTime}.xlsx"
+    name = f"../out/{directory_name}/{refName[1]} {currentTime}.xlsx"
     workbook = xlsxwriter.Workbook (name)
 
     #* global settings of excel export
@@ -503,7 +506,13 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     wr.set_default_row(hide_unused_rows=True)
 
     #* export quantity and concentration info
-    wq.write(0, 0, "Generation", header_format)
+    
+    if refName[0] == 1:
+        wq.write(0, 0, "Iterations", header_format)
+    else: 
+        wq.write(0, 0, "Generation", header_format)
+    
+
     loadedSpecies = list(chemicalSpecies.keys())
     i = 1
     for species in loadedSpecies: 
@@ -512,7 +521,11 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     wq.write(0,i,"Time", header_format)
     #wq.set_column(i, 16383, None, {'hidden': True})
 
-    wc.write(0, 0, "Generation", header_format)
+    if refName[0] == 1:
+        wc.write(0, 0, "Iterations", header_format)
+    else: 
+        wc.write(0, 0, "Generation", header_format)
+    
     i = 1
     for species in loadedSpecies: 
         wc.write(0, i, species, header_format)
