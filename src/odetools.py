@@ -161,6 +161,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
     
     seconds = 0.01
 
+    # t unused
     while divisionTest (t, protoAct, parameters):
         
         # if t > seconds: 
@@ -229,6 +230,10 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions):
             #print ("Duplication Time: ", solverTime[-1])
             
             if i == gen_exp: 
+                
+                if verbose: 
+                    print ("\nexpansion of imported generation...\n")
+                
                 excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], [1, "expand"])
 
             executionTime = endTime - startTime

@@ -44,6 +44,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="ProtoGen Simulator v.1 - 284660")
     parser.add_argument("-v", "--verbose", action="store_true", help="additional prints")
+    parser.add_argument("-e", "--eco", action="store_true", help="eco mode - save RAM memory")
     parser.add_argument("-r", "--reset", action="store_true", help="reset directory out/")
     parser.add_argument("-f", "--file", action="store_true", help="specify input file for parameters and reactions")
     parser.add_argument("-i", "--importV", action="store_true", help="view data imported")
