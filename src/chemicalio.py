@@ -16,15 +16,17 @@ def getVolume(C, ro, delta):
 
 def importParameters (verbose, file): 
 
-    parametersFile = ""
-    reactionsFile = ""
+    parametersFile = "../input/"
+    reactionsFile = "../input/"
     
     if file: 
-        parametersFile = input("Type the name of text file with parameters> ")
-        reactionsFile = input("Type the name of text file with reaction> ")
+        parametersUser = input("Type the name of text file with parameters> ")
+        reactionsUser = input("Type the name of text file with reaction> ")
+        parametersFile = parametersFile + parametersUser
+        reactionsFile = reactionsFile + reactionsUser
     else: 
-        parametersFile = "../input/parameters.txt"
-        reactionsFile = "../input/chimica.txt"
+        parametersFile = parametersFile + "parameters.txt"
+        reactionsFile = reactionsFile + "chimica.txt"
 
     fi=open(parametersFile,'r')   
 
@@ -507,60 +509,49 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
 
     #* export quantity and concentration info
     
+    # Header writing
     if refName[0] == 1:
         wq.write(0, 0, "Iterations", header_format)
-    else: 
-        wq.write(0, 0, "Generation", header_format)
-    
-
-    loadedSpecies = list(chemicalSpecies.keys())
-    i = 1
-    for species in loadedSpecies: 
-        wq.write(0, i, species, header_format)
-        i+=1
-    wq.write(0,i,"Time", header_format)
-    #wq.set_column(i, 16383, None, {'hidden': True})
-
-    if refName[0] == 1:
         wc.write(0, 0, "Iterations", header_format)
     else: 
+        wq.write(0, 0, "Generation", header_format)
         wc.write(0, 0, "Generation", header_format)
     
-    i = 1
-    for species in loadedSpecies: 
-        wc.write(0, i, species, header_format)
-        i+=1
-    wc.write(0,i,"Time", header_format)
-    #wc.set_column(f'{i}:{16383}', None, None, {'hidden': True})
-
+    # Index writing
     for i in range(1, len(matrixSimulation) + 1):
         wq.write(i,0,i)
         wc.write(i,0,i)
 
-    row=1
-    for matLine in matrixSimulation:
-        column=1
-        for value in matLine:
-            wq.write(row, column, value)
-            column+=1
-        row+=1
+    wq.write(0,1,"Time", header_format)
+    wc.write(0,1,"Time", header_format)
 
-    row=1
+    loadedSpecies = list(chemicalSpecies.keys())
+    
+    i = 2
+    for species in loadedSpecies: 
+        wq.write(0, i, species, header_format)
+        wc.write(0, i, species, header_format)
+        i+=1
+
+    #wq.set_column(i, 16383, None, {'hidden': True})
+    #wc.set_column(f'{i}:{16383}', None, None, {'hidden': True})
+
+    # Timing export
+    row=1 
+    column = 1
     for value in np.array(timeSimulation):
         wq.write(row,column,value)
+        wc.write(row,column,value)
         row+=1
 
+    # Data export [quantities and concentrations]
     row=1
     for matLine in matrixSimulation:
-        column=1
+        column=2
         for value in matLine:
+            wq.write(row, column, value)
             wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
             column+=1
-        row+=1
-
-    row=1
-    for value in np.array(timeSimulation):
-        wc.write(row, column, value)
         row+=1
 
     wc.set_default_row(hide_unused_rows=True)

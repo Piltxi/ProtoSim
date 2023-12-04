@@ -75,11 +75,6 @@ def ode_function (time, protoAct, parameters):
     
     Dx=scalar_multiply(protoX, 0)
 
-
-    """
-        Primi 
-    """
-
     for i in range(len(protoX)):
         if coefficients[i]!=0:
             Dx[0] += protoX[i] * coefficients[i]
@@ -93,12 +88,12 @@ def ode_function (time, protoAct, parameters):
 
             case ReactionType.FLOWIN: 
                 
-                protoX[reactions[i]["out"][0]] =+ reactions[i]["k"]
+                Dx[reactions[i]["out"][0]] += reactions[i]["k"]
 
             case ReactionType.FLOWOUT: 
 
                 term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
-                protoX[reactions[i]["in"][0]] =- term
+                Dx[reactions[i]["in"][0]] -= term
 
             case ReactionType.CONDENSATION_21: 
                 
@@ -114,7 +109,17 @@ def ode_function (time, protoAct, parameters):
                 Dx[reactions[i]["in"][1]] -= term
                 Dx[reactions[i]["out"][0]] += term
                 Dx[reactions[i]["out"][1]] += term
-            
+
+            case ReactionType.CONDENSATION_32:
+                
+                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] * protoX[reactions[i]["in"][2]] / pow ((parameters[0][0] * pow (protoX[0], 1.5)), 2)
+                
+                Dx[reactions[i]["in"][0]] -= term
+                Dx[reactions[i]["in"][1]] -= term
+                Dx[reactions[i]["in"][2]] -= term
+                Dx[reactions[i]["out"][0]] += term
+                Dx[reactions[i]["out"][1]] += term
+
             case ReactionType.CLEAVAGE_12: 
                 
                 term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
