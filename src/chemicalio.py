@@ -70,7 +70,9 @@ def importParameters (verbose, file):
         line = line.strip()
         
         if line: 
-            parts = line.split ("\t")
+            #parts = line.split ("\t")
+            
+            parts = line.split()
             
             if len(parts) == 3: # if  parts.strip (): if ';' in parts: 
                 species, quantity, coefficient = parts
