@@ -7,8 +7,8 @@ from errorsCheck import resetInfo
 
 """
 parameters = allParameters[0]
-#parameters = [chi, delta, ro, k, Da, As, div]
-chi, delta, ro, k, Da, As, div = parameters
+#parameters = [chi, delta, ro, Da, div]
+chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 

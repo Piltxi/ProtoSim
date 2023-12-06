@@ -33,8 +33,6 @@ def importParameters (verbose, file):
     delta = eval(fi.readline().split()[0])
     ro = eval(fi.readline().split()[0])
     Da = eval (fi.readline().split()[0])
-    k = eval(fi.readline().split()[0])
-    As = eval(fi.readline().split()[0])
     div = eval(fi.readline().split()[0]) 
     nIterates = eval(fi.readline().split()[0])
     t_end = eval(fi.readline().split()[0])
@@ -53,7 +51,7 @@ def importParameters (verbose, file):
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))
 
     # List of parameters to resolve ODE
-    parameters = [chi, delta, ro, k, Da, As, div]
+    parameters = [chi, delta, ro, Da, div]
 
     # List of environment sets
     environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving]; 
@@ -131,16 +129,15 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     sChi = "\u03c7"
     sKappa = "\u039a"
 
-    chi, delta, ro, k, Da, As, div = parameters
+    chi, delta, ro, Da, div = parameters
     nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
 
     print("\nRecognized Parameters:")
     print(sDelta, ":\t", delta)
     print(sRo, ":\t", ro)
     print (sChi, ":\t", chi)
-    print ("As:\t", As)
-    print (sKappa,":\t", k)
     print("Da:\t", Da)
+    print("Duplication threshold:\t", div)
 
     print("\nExecution Parameters:")
     print("flux:\t",nFlux)
@@ -256,7 +253,7 @@ def excelInit (chemicalSpecies, allParameters):
     wq.set_column('A:Z', 15)
     wc.set_column('A:Z', 15)
 
-    we.set_column('A:Z', 15)
+    we.set_column('A:Z', 18)
     wk.set_column('A:Z', 15)
     wr.set_column('A:Z', 15)
     wr.set_column('B:B', 5)
@@ -270,7 +267,7 @@ def excelInit (chemicalSpecies, allParameters):
     header_format.set_border(1)
 
     #* export parameters
-    chi, delta, ro, k, Da, As, div = allParameters[0]
+    chi, delta, ro, Da, div = allParameters[0]
     nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = allParameters[1]
     reactions = allParameters[2]
 
@@ -278,10 +275,8 @@ def excelInit (chemicalSpecies, allParameters):
         "\u03b4": delta,
         "\u03c1": ro,
         "\u03c7": chi,
-        "As": As,
-        "\u039a": k,
         "Da": Da,
-        "Div": div,
+        "Duplication Threshold": div,
         "flux": nFlux,
         "gen. to expand": (gen_exp:=gen_exp+1),
         "iterations": nIterates,
@@ -412,7 +407,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
 
     wq.set_column('A:Z', 15)
     wc.set_column('A:Z', 15)
-    we.set_column('A:Z', 15)
+    we.set_column('A:Z', 18)
     wk.set_column('A:Z', 15)
     wr.set_column('A:Z', 15)
     wr.set_column('B:B', 5)
@@ -426,7 +421,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     header_format.set_border(1)
 
     #* export parameters
-    chi, delta, ro, k, Da, As, div = allParameters[0]
+    chi, delta, ro, Da, div = allParameters[0]
     nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = allParameters[1]
     reactions = allParameters[2]
 
@@ -434,10 +429,8 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         "\u03b4": delta,
         "\u03c1": ro,
         "\u03c7": chi,
-        "As": As,
-        "\u039a": k,
         "Da": Da,
-        "Div": div,
+        "Duplication Threshold": div,
         "flux": nFlux,
         "gen. to expand": (gen_exp:=gen_exp+1),
         "iterations": nIterates,

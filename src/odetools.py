@@ -9,8 +9,8 @@ from errorsCheck import checkProtoSim
 
 """
 parameters = allParameters[0]
-#parameters = [chi, delta, ro, k, Da, As, div]
-chi, delta, ro, k, Da, As, div = parameters
+#parameters = [chi, delta, ro, Da, div]
+chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
@@ -41,12 +41,12 @@ def divisionTest(time, protoAct, parameters):
     else:
         return True
 
-def tolleranceTest(protoAct, protoNext, s_min, s_max, nFlussi, dt):
+def tolleranceTest(protoAct, protoNext, s_min, s_max, nFlux, dt):
 
     if not protoNext:
         return False
         
-    for i in range(len(protoAct)-nFlussi):
+    for i in range(len(protoAct)-nFlux):
        
         if protoNext[i] < 0:
             return True
@@ -138,7 +138,7 @@ def ode_function (time, protoAct, parameters):
 
             case ReactionType.DIFFUSION:
 
-                Dx [reactions[i]["out"][0]] += ((parameters[0][4] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
+                Dx [reactions[i]["out"][0]] += ((parameters[0][3] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
 
             case _:
                 checkProtoSim (5, reactions[i])
@@ -209,61 +209,6 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
     
     else:
         return (t, protoAct)
-
-""""
-def ECOsolver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
-
-    verbose, ecomode = userCheck
-
-    if ecomode: 
-        if verbose: 
-            print ("\neco mode activated\n")
-
-    deltaT = min (maxStep/10., interval[1]/10.)
-    
-    # Start of current simulation
-    t = interval[0]
-    
-    protoAct = protoGen[1][:] 
-
-    # Resolution of negative quantities
-    for i in range (len(protoAct)-nFlux):
-            if protoAct[i]<0: 
-                    protoAct[i] = 0 
-    
-    seconds = 0.01
-
-    while divisionTest (t, protoAct, parameters):
-        
-        # if t > seconds: 
-        #     print (t, protoAct)
-        
-        var = callOdeSolver (ode_function, t, [coefficient, protoAct], parameters, mapReactions, deltaT, nFlux)
-        
-        protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
-
-        if not tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
-            deltaT *= 1.2
-            if deltaT > maxStep:
-                deltaT = maxStep
-            
-        while tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
-            deltaT /= 2
-            protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
-
-        if t+deltaT > interval [1]:
-            deltaT = interval[1]-t
-
-        t += deltaT
-
-        protoAct = protoNext [:]
-
-        if t >= interval [1]: 
-            print ("End; ", t, interval[1])
-            break
-    
-    return (t, protoAct)
-"""
 
 def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ecomode): 
 
