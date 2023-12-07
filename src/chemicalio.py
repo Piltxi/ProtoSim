@@ -119,6 +119,9 @@ def importParameters (verbose, file):
      
     # Check of chemical species in the reactions
     checkProtoSim(3, [loadedSpecies, reactions])
+
+    # Check acceptability of number of fluxes and number of reactions
+    checkProtoSim (8, [len(reactions), nFlux])
     
     return [parameters, environment, chemicalSpecies, reactions]
 
@@ -153,6 +156,8 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     for species, (quantity, coefficient) in chemicalSpecies.items():
         i+=1
         print (f"{i}] {species} \t {quantity} kg\tCoefficient: ", coefficient)
+
+    
 
     print("\nReactions imported:")
     i = 0
@@ -221,7 +226,11 @@ def printMapReactions (mapReactions):
 
 def excelInit (chemicalSpecies, allParameters): 
 
-     #* path directory definition
+    chi, delta, ro, Da, div = allParameters[0]
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = allParameters[1]
+    reactions = allParameters[2]
+
+    #* path directory definition
     directory_name = "../out"
 
     if not os.path.exists(directory_name):
@@ -250,13 +259,19 @@ def excelInit (chemicalSpecies, allParameters):
     wq = workbook.add_worksheet("Quantity")
     wc = workbook.add_worksheet("Concentration")
 
+    if nFlux > 0:
+        wf = workbook.add_worksheet("Flux")
+
     wq.set_column('A:Z', 15)
     wc.set_column('A:Z', 15)
-
     we.set_column('A:Z', 18)
     wk.set_column('A:Z', 15)
     wr.set_column('A:Z', 15)
     wr.set_column('B:B', 5)
+    
+    if nFlux > 0:
+        wf.set_column('A:Z', 15)
+
 
     even_format = workbook.add_format({'bg_color': '#DDEBF7', 'align': 'center', 'valign': 'vcenter'})
     odd_format = workbook.add_format({'bg_color': '#FFFFFF', 'align': 'center', 'valign': 'vcenter'})
@@ -267,10 +282,6 @@ def excelInit (chemicalSpecies, allParameters):
     header_format.set_border(1)
 
     #* export parameters
-    chi, delta, ro, Da, div = allParameters[0]
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = allParameters[1]
-    reactions = allParameters[2]
-
     data = {
         "\u03b4": delta,
         "\u03c1": ro,
@@ -371,6 +382,36 @@ def excelInit (chemicalSpecies, allParameters):
         wq.write(i,0,i)
         wc.write(i,0,i)
     """
+
+    #* export info about fluxes
+    if nFlux > 0:
+        
+        wf.write(0, 0, "Generation", header_format)
+        ic = 1
+        for i, reaction in enumerate(reactions[:nFlux]):
+
+            ind = ic + 1
+            url = f'internal:Reactions!{ind}:{ind}'
+            tx = f"Flux {ic}"
+            wf.write_url(0, ic, url, string=tx, cell_format = header_format)
+
+            reagents_str = " + ".join(reaction["in"])
+            products_str = " + ".join(reaction["out"])
+            
+            if reaction["type"] is not ReactionType.FLOWIN and reaction["type"] is not ReactionType.FLOWOUT:
+                wf.write_comment(0, i:=i+1, f'{reagents_str} -> {products_str}')
+            
+            else: 
+                arrow =" \u2192 "
+                if reaction["type"] is ReactionType.FLOWIN: 
+                    wf.write_comment(0, i:=i+1, f'{products_str} {arrow} [CSTR]')
+                else: 
+                    wf.write_comment(0, i:=i+1, f'[CSTR] {arrow} {products_str}')
+            
+            ic+=1
+
+        wf.write(0,ic,"Time", header_format)
+
 
     return workbook, wc, wq
 
