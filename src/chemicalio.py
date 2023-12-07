@@ -157,8 +157,6 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
         i+=1
         print (f"{i}] {species} \t {quantity} kg\tCoefficient: ", coefficient)
 
-    
-
     print("\nReactions imported:")
     i = 0
     for i, reaction in enumerate (reactions): 
@@ -406,14 +404,18 @@ def excelInit (chemicalSpecies, allParameters):
                 if reaction["type"] is ReactionType.FLOWIN: 
                     wf.write_comment(0, i:=i+1, f'{products_str} {arrow} [CSTR]')
                 else: 
-                    wf.write_comment(0, i:=i+1, f'[CSTR] {arrow} {products_str}')
+                    wf.write_comment(0, i:=i+1, f'[CSTR] {arrow} {reagents_str}')
             
             ic+=1
 
         wf.write(0,ic,"Time", header_format)
 
 
-    return workbook, wc, wq
+    if nFlux == 0:
+        return workbook, wc, wq
+    
+    if nFlux > 0:
+        return workbook, wc, wq, wf
 
 def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameters, refName): 
 
