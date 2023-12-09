@@ -703,12 +703,19 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
                 wc.write(row,column,value)
                 row+=1
 
+
         if nFlux > 0:
             for value in np.array(timeSimulation):
                 wq.write(row,column,value)
-                wf.write(row,column,value)
                 wc.write(row,column,value)
                 row+=1
+
+            row=1 
+            column = nFlux+1
+            for value in np.array(timeSimulation):
+                wf.write(row,column,value)
+                row+=1 
+        
         
     #* Data export [quantities and concentrations] + [any export fluxes]
 
