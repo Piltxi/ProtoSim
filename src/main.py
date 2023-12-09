@@ -1,25 +1,20 @@
 import argparse
 import numpy as np
+from datetime import datetime
 
-from chemicalio import importParameters, printInfo
+from chemicalio import importParameters, printInfo, printFinalInfo, excelExport
 from odetools import simulation
 from errorsCheck import resetInfo
 
 """
 parameters = allParameters[0]
-#parameters = [chi, delta, ro, k, Da, As, div]
-chi, delta, ro, k, Da, As, div = parameters
+# parameters = [chi, delta, ro, Da, div]
+chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
 nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
 """
-
-def printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation): 
-
-    print ("\n->END SIMULATION<-")
-    printInfo(parameters, environment, chemicalSpecies, reactions)
-
 
 def main(verbose, reset, file, importView, ecomode):
 
@@ -35,9 +30,10 @@ def main(verbose, reset, file, importView, ecomode):
     if verbose:
         printInfo(parameters, environment, chemicalSpecies, reactions)
 
-    (timeSimulation, matrixSimulation) = simulation (verbose, environment, parameters, chemicalSpecies, reactions, ecomode)
+    currentTime = datetime.now().strftime("%H.%M")
+    (timeSimulation, matrixSimulation) = simulation (verbose, ecomode, currentTime, environment, parameters, chemicalSpecies, reactions)
 
-    printFinalInfo (parameters, environment, chemicalSpecies, reactions, matrixSimulation, timeSimulation)
+    printFinalInfo (currentTime, parameters, environment, chemicalSpecies, reactions, matrixSimulation)
 
 
 if __name__ == "__main__":

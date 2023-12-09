@@ -72,6 +72,29 @@ def checkProtoSim (arg, data):
                 print (f"\nERROR 07 - loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
                 quit()
 
+        case 8: 
+
+            if data [0] <= 0:
+                print (f"\nERROR 08 - zero reactions found\n")
+                quit()
+
+            if data [1] < 0 or not (isinstance(data [1], int)):
+
+                print (f"\nERROR 08 - unknown flux number: please type '0' in parameters file to disable tracking\n")
+                quit()
+
+            if data [1] == 0:
+                return
+
+            if data [1] > 0: 
+                if data [1] > data [0]: 
+                    print (f"\nERROR 08 - too many fluxes recognized\nnumber of imported reactions: {data [0]} - number of flux imported: {data[1]}.")
+                    quit()
+
+        case 9: 
+            print (f"\nERROR 09 - Tollerance Test: empty protoX [{data}]\n")
+            quit()
+
         case _: 
             print ("\nUNKNOW ERROR XY")
             quit ()
