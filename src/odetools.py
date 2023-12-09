@@ -44,7 +44,7 @@ def divisionTest(time, protoAct, parameters):
 def tolleranceTest(protoAct, protoNext, s_min, s_max, nFlux, dt):
 
     if not protoNext:
-        return False
+        checkProtoSim (9, "false protoNext")
         
     for i in range(len(protoAct)-nFlux):
        
@@ -94,20 +94,10 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
     seconds = 0.01
 
     while divisionTest (t, protoAct, parameters):
-        
-        # if t > seconds: 
-        #     print (t, protoAct)
-        
-        # print ("dim prime call: ", len(protoAct))
 
         var = callOdeSolver (ode_function, t, [coefficient, protoAct], parameters, mapReactions, deltaT, nFlux)
 
-        # print ("dim dopo call: ", len(var))
-
         protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
-
-        # print ("dim dopo add: ", len(protoNext))
-        #quit()
 
         if not tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
             deltaT *= 1.2
@@ -139,33 +129,19 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
     else:
         return (t, protoAct)
 
-def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ecomode): 
+def simulation (verbose, ecomode, currentTime, environment, parameters, chemicalSpecies, reactions): 
 
     nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
 
     # Preparing to directly export data to the csv file.
     if nFlux == 0:
-        workbook, wc, wq = excelInit(chemicalSpecies, [parameters, environment, reactions])
+        workbook, wc, wq = excelInit(chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "sim"])
 
     if nFlux > 0:
-        workbook, wc, wq, wf = excelInit(chemicalSpecies, [parameters, environment, reactions])
+        workbook, wc, wq, wf = excelInit(chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "sim"])
 
     protoGen = np.zeros (len(chemicalSpecies)+nFlux)
     protoGen[:len(chemicalSpecies)] = [chemicalSpecies[quantity][0] for quantity in chemicalSpecies]
-
-    protoGen[-1] = 140
-
-    """
-    print ("Nflux: ", nFlux)
-    print ("protogen: ", len(protoGen))
-    
-    print ("protogen: ", len(protoGen)-nFlux)
-    print(protoGen[11])
-    protoGen[11] = 50
-    print ("protogen: ", protoGen[len(protoGen)-nFlux])
-    quit()
-    """ 
-    # controllato
 
     protoInit = np.copy(protoGen)
 
@@ -199,25 +175,18 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
 
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
-            (solverTime, y_sol) = solver (ode_functionMAGIC, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
             endTime = time.time()
 
             #print ("Duplication Time: ", solverTime[-1])
             
             if i == gen_exp: 
                 controlIndex=i
-                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], [1, "expand"])
+                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], currentTime, [1, "expand"])
                 if verbose: 
                     print ("\n\t!]expansion of imported generation exported.\n")
 
             executionTime = endTime - startTime
-            
-            # print ("after: ", y_sol[-1])
-            # quit()
-
-            #print ("dimensione dopo sim: ", len(y_sol[-1]))
-            # quit()
-            # La dimensione qua è già tornata corretta
 
             if verbose: 
 
@@ -243,11 +212,9 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
                 time_ += [solverTime[-1]]
                 protoGen = np.copy (y_sol[-1])
 
+            mat += [np.copy(protoGen)]
             if verbose: 
                 print ("End generation n.", i+1, "\t", protoGen, "\n")
-
-            # time_ += [solverTime[-1]]
-            # mat += [np.copy(protoGen)]
 
             if i == gen_exp:
                 cell_format = workbook.add_format({'bg_color': '#FFFF00'})
@@ -272,8 +239,6 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
                 wq.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
                 if nFlux > 0: 
                     wf.write(i + 1, nFlux+1, solverTime[-1])
-
-
 
             wc.write(i+1, 0, i+1)
             for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
@@ -326,225 +291,13 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
 
     return (time_, mat)
 
-# ode function magica che funziona senza che si sappia perché
-def ode_functionMAGIC (time, protoAct, parameters): 
+def ode_function (time, protoAct, parameters): 
 
     nFlux = parameters[2]
-
-    protoX = protoAct[1][:]
-    coefficients = protoAct[0] [:]
-
-    Dx = np.zeros(len(protoX)+nFlux)
-
-    # Restore previous fluxes errato
-    for i in range(len(protoX), len(protoX) + nFlux):
-        Dx[i] += protoX[i - (len(protoX)-nFlux)]
-
-    print ("Dx 343: ", Dx)
-    quit()
-
-    # Restore previous fluxes corretto
-    for i in range (len(protoX)-nFlux, len(protoX)):
-        Dx[i+nFlux] = protoX[i]
-    
-    print ("Dx 347: ", Dx)
-    quit()
-
-    # Contribution to membrane formation
-    for i in range(len(protoX)-nFlux):
-        if coefficients[i]!=0:
-            Dx[0] += protoX[i] * coefficients[i]
-
-    reactions = parameters[1]
-    
-    # Reaction Variation Rules 
-    for i in range(len(reactions)):
-        
-        match reactions[i]["type"]:
-
-            case ReactionType.FLOWIN: 
-                
-                Dx[reactions[i]["out"][0]] += reactions[i]["k"]
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] += reactions[i]["k"]
-
-            case ReactionType.FLOWOUT: 
-
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
-                Dx[reactions[i]["in"][0]] -= term
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] -= term
-
-            case ReactionType.CONDENSATION_21: 
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX [reactions[i]["in"][1]] / (parameters[0][0] * pow (protoX[0], 1.5))
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["out"][0]] += term
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] += term
-           
-            case ReactionType.CONDENSATION_22: 
-    
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] / (parameters[0][0] * pow (protoX[0], 1.5))
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] += term
-
-            case ReactionType.CONDENSATION_32:
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] * protoX[reactions[i]["in"][2]] / pow ((parameters[0][0] * pow (protoX[0], 1.5)), 2)
-                
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["in"][2]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] += term
-
-            case ReactionType.CLEAVAGE_12: 
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] += term
-            
-            case ReactionType.CLEAVAGE_23: 
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] / (parameters[0][0] * pow (protoX[0], 1.5))
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-                Dx[reactions[i]["out"][2]] += term
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] += term
-
-            case ReactionType.DIFFUSION:
-
-                Dx [reactions[i]["out"][0]] += ((parameters[0][3] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
-
-                if nFlux > 0:
-                    if i < nFlux: 
-                        Dx [(len(protoX)-nFlux)+i] += ((parameters[0][3] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
-
-            case _:
-                checkProtoSim (5, reactions[i])
-
-    return Dx
-
-# ode function originale senza monitoraggio flussi
-def ode_functionORIGINALE (time, protoAct, parameters): 
-
-    nFlux = parameters[2]
-
     protoX = protoAct[1][:]
     coefficients = protoAct[0] [:]
     
     Dx=scalar_multiply(protoX, 0)
-
-    # Contribution to membrane formation
-    for i in range(len(protoX)-nFlux):
-        if coefficients[i]!=0:
-            Dx[0] += protoX[i] * coefficients[i]
-
-    reactions = parameters[1]
-    
-    # Reaction Variation Rules
-    for i in range(len(reactions)):
-        
-        match reactions[i]["type"]:
-
-            case ReactionType.FLOWIN: 
-                
-                Dx[reactions[i]["out"][0]] += reactions[i]["k"]
-
-            case ReactionType.FLOWOUT: 
-
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
-                Dx[reactions[i]["in"][0]] -= term
-
-            case ReactionType.CONDENSATION_21: 
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX [reactions[i]["in"][1]] / (parameters[0][0] * pow (protoX[0], 1.5))
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["out"][0]] += term
-           
-            case ReactionType.CONDENSATION_22: 
-    
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] / (parameters[0][0] * pow (protoX[0], 1.5))
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-
-            case ReactionType.CONDENSATION_32:
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] * protoX[reactions[i]["in"][2]] / pow ((parameters[0][0] * pow (protoX[0], 1.5)), 2)
-                
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["in"][2]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-
-            case ReactionType.CLEAVAGE_12: 
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-            
-            case ReactionType.CLEAVAGE_23: 
-                
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] / (parameters[0][0] * pow (protoX[0], 1.5))
-                Dx[reactions[i]["in"][0]] -= term
-                Dx[reactions[i]["in"][1]] -= term
-                Dx[reactions[i]["out"][0]] += term
-                Dx[reactions[i]["out"][1]] += term
-                Dx[reactions[i]["out"][2]] += term
-
-            case ReactionType.DIFFUSION:
-
-                Dx [reactions[i]["out"][0]] += ((parameters[0][3] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
-
-            case _:
-                checkProtoSim (5, reactions[i])
-
-    return Dx
-
-# ode function originale modificata
-def ode_functionORMOD (time, protoAct, parameters): 
-
-    nFlux = parameters[2]
-    protoX = protoAct[1][:]
-    coefficients = protoAct[0] [:]
-    Dx=scalar_multiply(protoX, 0)
-
-    # Restore previous fluxes
-    for i in range(len(protoX) - nFlux, len(protoX)):
-        Dx[i] = protoX[i]
 
     # Contribution to membrane formation
     for i in range(len(protoX)-nFlux):
@@ -648,9 +401,6 @@ def ode_functionORMOD (time, protoAct, parameters):
                 checkProtoSim (5, reactions[i])
 
     return Dx
-
-# ode function magica modificata.
-def ode_functionMAGICMOD (time, protoAct, parameters): 
 
     nFlux = parameters[2]
 
