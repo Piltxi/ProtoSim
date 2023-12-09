@@ -1,3 +1,4 @@
+from asyncio import protocols
 import numpy as np
 import time
 from tqdm import tqdm
@@ -152,7 +153,7 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
     protoGen = np.zeros (len(chemicalSpecies)+nFlux)
     protoGen[:len(chemicalSpecies)] = [chemicalSpecies[quantity][0] for quantity in chemicalSpecies]
 
-    #protoGen[-1] = 140
+    protoGen[-1] = 140
 
     """
     print ("Nflux: ", nFlux)
@@ -198,7 +199,7 @@ def simulation (verbose, environment, parameters, chemicalSpecies, reactions, ec
 
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
-            (solverTime, y_sol) = solver (ode_functionORIGINALE, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            (solverTime, y_sol) = solver (ode_functionMAGIC, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
             endTime = time.time()
 
             #print ("Duplication Time: ", solverTime[-1])
@@ -335,9 +336,19 @@ def ode_functionMAGIC (time, protoAct, parameters):
 
     Dx = np.zeros(len(protoX)+nFlux)
 
-    # Restore previous fluxes
+    # Restore previous fluxes errato
     for i in range(len(protoX), len(protoX) + nFlux):
-        Dx[i] = protoX[i - len(protoX)]
+        Dx[i] += protoX[i - (len(protoX)-nFlux)]
+
+    print ("Dx 343: ", Dx)
+    quit()
+
+    # Restore previous fluxes corretto
+    for i in range (len(protoX)-nFlux, len(protoX)):
+        Dx[i+nFlux] = protoX[i]
+    
+    print ("Dx 347: ", Dx)
+    quit()
 
     # Contribution to membrane formation
     for i in range(len(protoX)-nFlux):
@@ -431,11 +442,6 @@ def ode_functionMAGIC (time, protoAct, parameters):
 
             case ReactionType.DIFFUSION:
 
-                # print ("diffusione, parametero: ", parameters[0][3])
-                # print ("diffusione, parametero ro: ", parameters[0][1])
-                #quit()
-
-                # Dx [reactions[i]["out"][0]] += ((parameters[0][4] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
                 Dx [reactions[i]["out"][0]] += ((parameters[0][3] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
 
                 if nFlux > 0:
@@ -662,9 +668,6 @@ def ode_functionMAGICMOD (time, protoAct, parameters):
     for i in range(len(protoX)-nFlux):
         if coefficients[i]!=0:
             Dx[0] += protoX[i] * coefficients[i]
-
-    # print ("DX: ", Dx)
-    # quit()
 
     reactions = parameters[1]
     
