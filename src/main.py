@@ -35,8 +35,6 @@ def main(verbose, reset, file, importView, ecomode):
 
     printFinalInfo (currentTime, parameters, environment, chemicalSpecies, reactions, matrixSimulation)
 
-    excelExport(matrixSimulation, timeSimulation, chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "backup"])
-
 
 if __name__ == "__main__":
     
