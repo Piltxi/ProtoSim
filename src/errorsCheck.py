@@ -91,6 +91,10 @@ def checkProtoSim (arg, data):
                     print (f"\nERROR 08 - too many fluxes recognized\nnumber of imported reactions: {data [0]} - number of flux imported: {data[1]}.")
                     quit()
 
+        case 9: 
+            print (f"\nERROR 09 - Tollerance Test: empty protoX [{data}]\n")
+            quit()
+
         case _: 
             print ("\nUNKNOW ERROR XY")
             quit ()
