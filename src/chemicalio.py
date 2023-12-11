@@ -17,6 +17,13 @@ environment = allParameters [1]
 nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
 """
 
+def getOrdinal (number):
+    if 10 <= number % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(number % 10, 'th')
+    return f"{number}{suffix}"
+
 def getConcentration(x, C, ro, delta):
     return x / getVolume(C, ro, delta)
 
