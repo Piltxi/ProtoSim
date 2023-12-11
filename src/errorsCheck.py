@@ -74,9 +74,13 @@ def checkProtoSim (arg, data):
             if data [0] == -1: 
                 return
 
-            if data[0] < 1 or data[0] > data[1]:
-                print (f"\nERROR 07 - loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
-                quit()
+            for element in data [0]: 
+                if element == 0 or element > data [1]:
+                    print (f"\nERROR 07 - loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
+                    quit()
+
+            for element in data [0]: 
+                element-=1
 
         case 8: 
 
@@ -112,3 +116,4 @@ def resetInfo ():
             subprocess.run(["rm", "-fr", "../out"], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error in removing the existing directory: {e}")
+    quit()

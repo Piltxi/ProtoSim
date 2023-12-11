@@ -157,8 +157,11 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
     if not verbose:
         progress_bar = tqdm(total=nIterates, desc="Simulating", unit="generation", position=0, dynamic_ncols=True)
 
+    if verbose and ecomode: 
+        print ("Start simulation in eco-mode.")
+
     try: 
-        
+    
         ecomodeHistory = ecomode
         controlIndex = -1
         
@@ -167,24 +170,22 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             if verbose: 
                 print ("Start generation n.", i+1)
 
-            if i == gen_exp: 
+            if i in gen_exp: 
                 if ecomodeHistory:
                     if verbose:
-                        print ("\n\t!]eco mode de-activated: expansion of imported generation.")
+                        print (f"\n\t!]eco mode de-activated: expansion of imported generation [{i+1}].")
                     ecomode = False
-
+            
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
             (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
             endTime = time.time()
 
-            #print ("Duplication Time: ", solverTime[-1])
-            
-            if i == gen_exp: 
+            if i in gen_exp: 
                 controlIndex=i
-                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], currentTime, [1, "expand"])
+                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], currentTime, [1, f"expand {i+1}"])
                 if verbose: 
-                    print ("\n\t!]expansion of imported generation exported.\n")
+                    print (f"\n\t!]expansion of imported generation [{i+1}] exported.\n")
 
             executionTime = endTime - startTime
 
@@ -201,9 +202,6 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
                     print(f"| Time spent {minutes}:{seconds} minutes")
                 else:  
                    print(f"| Time spent {round(executionTime)} seconds") 
-            
-            # About last generation 
-            # protoGen = np.copy (y_sol[-1])
         
             if ecomode:
                 time_ += [solverTime]
@@ -213,14 +211,17 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
                 protoGen = np.copy (y_sol[-1])
 
             mat += [np.copy(protoGen)]
+
             if verbose: 
                 print ("End generation n.", i+1, "\t", protoGen, "\n")
 
-            if i == gen_exp:
+            if i in gen_exp: 
                 cell_format = workbook.add_format({'bg_color': '#FFFF00'})
                 index = i
                 wq.set_row(index+1, None, cell_format)
                 wc.set_row(index+1, None, cell_format)
+                if nFlux > 0:
+                    wf.set_row(index+1, None, cell_format)
 
             wq.write(i+1, 0, i+1)
             for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
@@ -263,25 +264,20 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             if not verbose:
                 progress_bar.update(1)
 
-            if controlIndex == gen_exp: 
+            if controlIndex in gen_exp: 
                 if not ecomode: 
                     if ecomodeHistory:
                         if verbose:
                             print ("\n\t!]eco mode re-activated\n")
-                        ecomodeHistory = False
                         ecomode = True
-                
-                if ecomode:
-                    if ecomodeHistory:
-                        print ("\n\t!]eco mode unchanged\n")
-            
+    
     except KeyboardInterrupt:
         
         if not verbose:
             progress_bar.close()
         
         workbook.close()
-        print ("\nimproper shutdown - current simulation exported successfully")
+        print (f"\nimproper shutdown - current simulation exported successfully in /simulation {currentTime}")
         quit()
 
     if not verbose:
