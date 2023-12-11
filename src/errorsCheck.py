@@ -1,6 +1,5 @@
 import os
 import subprocess
-# from reactions import ReactionType
 
 def checkProtoSim (arg, data):
     
@@ -22,8 +21,10 @@ def checkProtoSim (arg, data):
         case 3: 
             
             from reactions import ReactionType
-            
-            for reaction in data[1]:
+            from chemicalio import getOrdinal
+
+            for i, reaction in enumerate (data[1]):
+                
                 reactants = reaction["in"]
                 products = reaction["out"]
 
@@ -31,23 +32,28 @@ def checkProtoSim (arg, data):
                     
                     if reaction["type"] == ReactionType.FLOWIN: 
                         if products[0] not in data [0]: 
-                            print (f"\nERROR 03 - invalid reaction: '{products[0]}' chemical species unknown ")
+                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{products[0]}' chemical species unknown ")
                             quit()
                         else: 
                             continue
 
                     if reaction["type"] == ReactionType.FLOWOUT: 
                         if reactants[0] not in data [0]: 
-                            print (f"\nERROR 03 - invalid reaction: '{reactants[0]}' chemical species unknown")
+                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{reactants[0]}' chemical species unknown")
+                            quit ()
+                        else: 
+                            continue
+
+                    if reaction["type"] == ReactionType.DIFFUSION: 
+                        
+                        if products[0] not in data [0]: 
+                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{products[0]}' chemical species unknown")
                             quit ()
                         else: 
                             continue
 
                     if specie not in data[0]: 
-                        try: 
-                            float (specie)
-                        except ValueError:
-                            print (f"\nERROR 03 - invalid reaction: '{specie}' chemical species unknown")
+                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{specie}' chemical species unknown")
                             quit()
 
         case 4: 
