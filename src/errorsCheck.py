@@ -93,6 +93,11 @@ def checkProtoSim (arg, data):
             if data [2] != -1 and data [0] == -1: 
                 print(f"ERROR 7 - unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
                 quit()
+
+            if not data[0] and data [2] != -1:
+                print(f"ERROR 7 - unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
+                quit()
+
         
         case 8: 
 
