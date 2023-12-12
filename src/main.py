@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from chemicalio import importParameters, printInfo, printFinalInfo, excelExport
+from chemicalio import importParameters, printInfo, printFinalInfo
 from odetools import simulation
 from errorsCheck import resetInfo
 
@@ -32,8 +32,6 @@ def main(verbose, reset, file, importView, ecomode):
 
     currentTime = datetime.now().strftime("%H.%M")
     (timeSimulation, matrixSimulation) = simulation (verbose, ecomode, currentTime, environment, parameters, chemicalSpecies, reactions)
-
-    # excelExport(matrixSimulation, timeSimulation, chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "mainsim"], verbose)
 
     printFinalInfo (currentTime, parameters, environment, chemicalSpecies, reactions, matrixSimulation)
 
