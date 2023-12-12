@@ -13,7 +13,7 @@ chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
 """
 
 def main(verbose, reset, file, importView, ecomode):
@@ -32,6 +32,8 @@ def main(verbose, reset, file, importView, ecomode):
 
     currentTime = datetime.now().strftime("%H.%M")
     (timeSimulation, matrixSimulation) = simulation (verbose, ecomode, currentTime, environment, parameters, chemicalSpecies, reactions)
+
+    # excelExport(matrixSimulation, timeSimulation, chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "mainsim"], verbose)
 
     printFinalInfo (currentTime, parameters, environment, chemicalSpecies, reactions, matrixSimulation)
 
