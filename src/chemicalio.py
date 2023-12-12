@@ -471,133 +471,6 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     if nFlux > 0:
         workbook, wc, wq, wf = excelInit(chemicalSpecies, allParameters, currentTime, refName)
 
-    #* Index writing
-    if nFlux == 0:
-        for i in range(1, len(matrixSimulation) + 1):
-            wq.write(i,0,i)
-            wc.write(i,0,i)
-
-    if nFlux > 0:
-        for i in range(1, len(matrixSimulation) + 1):
-            wq.write(i,0,i)
-            wc.write(i,0,i)
-            wf.write(i,0,i)
-
-
-    #* Timing export
-    # Working on expansion generation file
-    if refName[0] == 1: 
-        pass
-        #! TO DO
-    
-    # Working on simulation summary
-    else: 
-        row = 1 
-        column = 1
-        
-        if nFlux == 0:
-            for value in np.array(timeSimulation):
-                wq.write(row,column,value)
-                wc.write(row,column,value)
-                row+=1
-
-        if nFlux > 0:
-            for value in np.array(timeSimulation):
-                wq.write(row,column,value)
-                wc.write(row,column,value)
-                wf.write(row,column,value)
-                row+=1
-        
-    #* Data export [quantities and concentrations] + [any export fluxes]
-    chemicalVariation = [row[:len(chemicalSpecies)] for row in matrixSimulation]
-    
-    if nFlux > 0: 
-        fluxes = [row[-nFlux:] for row in matrixSimulation]
-
-    if refName[0] == 1: 
-        
-        if nFlux == 0:
-            row=1
-            for matLine in chemicalVariation:
-                column=2
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
-        
-        if nFlux > 0: 
-            row=1
-            for matLine in chemicalVariation:
-                column=2
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
-
-            row=1
-            for matLine in fluxes:
-                column=2
-                for value in matLine:
-                    wf.write(row, column, value)
-                    column+=1
-                row+=1
-
-    else: 
-        if nFlux == 0:
-            row=1
-            for matLine in chemicalVariation:
-                column=1
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
-        
-        if nFlux > 0:
-            row=1
-            for matLine in chemicalVariation:
-                column=1
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
-
-            row=1
-            for matLine in fluxes:
-                column=1
-                for value in matLine:
-                    wf.write(row, column, value)
-                    column+=1
-                row+=1
-            
-    wc.set_default_row(hide_unused_rows=True)
-    wq.set_default_row(hide_unused_rows=True)
-    
-    if nFlux > 0: 
-        wf.set_default_row(hide_unused_rows=True)
-
-    workbook.close()
-
-# verbose glielo diamo?
-def excelExportmoddato (matrixSimulation, timeSimulation, chemicalSpecies, allParameters, currentTime, refName, verbose): 
-
-    # allParameters [0] -> parameters
-    # allParameters [1] -> environment
-    # allParameters [2] -> reaction
-    # refName [0] -> type of export
-    # refName [1] -> name of file
-
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = allParameters[1]
-
-    if nFlux == 0:
-        workbook, wc, wq = excelInit(chemicalSpecies, allParameters, currentTime, refName)
-
-    if nFlux > 0:
-        workbook, wc, wq, wf = excelInit(chemicalSpecies, allParameters, currentTime, refName)
-
     chemicalVariation = [row[:len(chemicalSpecies)] for row in matrixSimulation]
     if nFlux > 0: 
         fluxes = [row[-nFlux:] for row in matrixSimulation]
@@ -622,24 +495,66 @@ def excelExportmoddato (matrixSimulation, timeSimulation, chemicalSpecies, allPa
                     wc.write(i, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
                     column += 1
                 i+=1
-            
-            wq.write(i+1, 0, len(chemicalVariation))
-            wc.write(i+1, 0, len(chemicalVariation))
+        
+        i=1
+        if nFlux > 0:
+            for interval in np.arange(0, max(timeSimulation), genExp_time):
+                index = np.argmin(np.abs(np.array(timeSimulation) - interval))
+                
+                wq.write(i, 0, index)
+                wc.write(i, 0, index)
 
-            wq.write(i+1, 1, timeSimulation[-1])
-            wc.write(i+1, 1, timeSimulation[-1])
+                wq.write(i, 1, timeSimulation[index])
+                wc.write(i, 1, timeSimulation[index])
+
+                column = 2
+                for value in chemicalVariation[index]:
+                    wq.write(i, column, value)
+                    wc.write(i, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
+                    column += 1
+                i+=1
+            
+            i=1
+            for interval in np.arange(0, max(timeSimulation), genExp_time):
+                index = np.argmin(np.abs(np.array(timeSimulation) - interval))
+
+                wf.write(i, 0, index)
+
+                wf.write(i, 1, timeSimulation[index])
+
+                column = 2
+                for value in fluxes[index]:
+                    wf.write(i, column, value)
+                    column += 1
+                i+=1
+
+        i+=1
+        wq.write(i, 0, len(chemicalVariation))
+        wc.write(i, 0, len(chemicalVariation))
+
+        wq.write(i, 1, timeSimulation[-1])
+        wc.write(i, 1, timeSimulation[-1])
+
+        column = 2
+        for value in chemicalVariation[-1]:
+            wq.write(i, column, value)
+            wc.write(i, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
+            column += 1
+        
+        cell_format = workbook.add_format({'bg_color': '#00FFFF'})
+        wq.set_row(i, None, cell_format)
+        wc.set_row(i, None, cell_format)
+
+        if nFlux > 0: 
+            wf.write(i, 0, len(chemicalVariation))
+            wf.write(i, 1, timeSimulation[-1])
 
             column = 2
-            for value in chemicalVariation[-1]:
-                wq.write(i+1, column, value)
-                wc.write(i+1, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
+            for value in fluxes[-1]:
+                wf.write(i, column, value)
                 column += 1
-            
-            cell_format = workbook.add_format({'bg_color': '#00FFFF'})
-            wq.set_row(i+1, None, cell_format)
-            wc.set_row(i+1, None, cell_format)
-
         
+            wf.set_row(i, None, cell_format)
 
     # export generation data standard
     else: 
