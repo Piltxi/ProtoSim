@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from chemicalio import importParameters, printInfo, printFinalInfo, excelExport
+from chemicalio import importParameters, printInfo, printFinalInfo
 from odetools import simulation
 from errorsCheck import resetInfo
 
@@ -13,7 +13,7 @@ chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
 """
 
 def main(verbose, reset, file, importView, ecomode):

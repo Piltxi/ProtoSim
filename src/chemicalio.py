@@ -14,7 +14,7 @@ chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, gen_expTime = environment
 """
 
 def getOrdinal (number):
@@ -58,10 +58,11 @@ def importParameters (verbose, file):
     toll_max = eval(fi.readline().split()[0])
     nFlux = eval(fi.readline().split()[0]) 
     gen_exp = [int(x) for x in fi.readline().split() if x.isdigit()]
+    genExp_timing = eval(fi.readline().split()[0]) 
 
     fi.close()
 
-    checkProtoSim(7, [gen_exp, nIterates])
+    checkProtoSim(7, [gen_exp, nIterates, genExp_timing])
     gen_exp = [value - 1 for value in gen_exp]
 
     calving = 0.353553
@@ -71,7 +72,7 @@ def importParameters (verbose, file):
     parameters = [chi, delta, ro, Da, div]
 
     # List of environment sets
-    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving]; 
+    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing]; 
     
     chemicalSpecies = {}
     reactions = []
@@ -149,26 +150,27 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     sChi = "\u03c7"
 
     chi, delta, ro, Da, div = parameters
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing = environment
 
     print("\nRecognized Parameters:")
-    print(sDelta, ":\t", delta)
-    print(sRo, ":\t", ro)
-    print (sChi, ":\t", chi)
-    print("Da:\t", Da)
-    print("Duplication threshold:\t", div)
+    print("]", sDelta, ":\t", delta)
+    print("]", sRo, ":\t", ro)
+    print ("]", sChi, ":\t", chi)
+    print("]", "Da:\t", Da)
+    print("]", "Duplication threshold:\t", div)
 
     print("\nExecution Parameters:")
-    print("flux:\t",nFlux)
-    print("iterations:\t", nIterates)
-    print("calving:\t", calving)
-    print("end time:\t",t_end)
-    print("max  step:\t",max_step)       
-    print("min toll. :",toll_min, "\tmax toll. :",toll_max)
+    print("]", "flux:\t",nFlux)
+    print("]", "iterations:\t", nIterates)
+    print("]", "calving:\t", calving)
+    print("]", "end time:\t",t_end)
+    print("]", "max  step:\t",max_step)       
+    print("]", "min toll. :",toll_min, "\t]", "max toll. :",toll_max)
     
     (gen_exp := [value + 1 for value in gen_exp])
     gen_exp_str = ', '.join(map(str, gen_exp))
-    print("generation to expand:\t", gen_exp_str)
+    print("]", "generation to expand: ", gen_exp_str, end = '\t') if gen_exp else print("]", "generation to expand: nd\t", end = '')
+    print ("]", "export time: ", genExp_timing) if genExp_timing != -1 else print ("]", "export time: nd")
 
     print("\nChemical Species imported:")
     i = 0
@@ -244,7 +246,7 @@ def printMapReactions (mapReactions):
 def excelInit (chemicalSpecies, allParameters, currentTime, refName): 
 
     chi, delta, ro, Da, div = allParameters[0]
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = allParameters[1]
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = allParameters[1]
     reactions = allParameters[2]
 
     #* path directory definition
@@ -306,7 +308,8 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
     header_format.set_border(1)
 
     (gen_exp := [value + 1 for value in gen_exp])
-    gen_exp_str = ', '.join(map(str, gen_exp))
+    gen_exp_str = ', '.join(map(str, gen_exp)) if gen_exp else 'nd'
+    timeExp = genExp_time if genExp_time != -1 else "nd"
 
     #* export parameters
     data = {
@@ -317,6 +320,7 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
         "Duplication Threshold": div,
         "flux": nFlux,
         "gen. to expand": gen_exp_str,
+        "interval for expansion": timeExp,
         "iterations": nIterates,
         "calving": calving,
         "end time": t_end,
@@ -388,97 +392,62 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
 
     #* Header writing export
     loadedSpecies = list(chemicalSpecies.keys())
-    
-    if refName[0] == 1:
-        wq.write(0, 0, "Iterations", header_format)
-        wc.write(0, 0, "Iterations", header_format)
-        wq.write(0,1,"Time", header_format)
-        wc.write(0,1,"Time", header_format)
 
-        i = 2
-        for species in loadedSpecies: 
-            wq.write(0, i, species, header_format)
-            wc.write(0, i, species, header_format)
-            i+=1
+    # Working on expansion generation file
+    if refName[0] == 1:
+        wq.write(0, 0, "Iteration", header_format)
+        wc.write(0, 0, "Iteration", header_format)
     
+    # Working on simulation summary
     else: 
         wq.write(0, 0, "Generation", header_format)
         wc.write(0, 0, "Generation", header_format)
 
-        i = 1
-        for species in loadedSpecies: 
-            wq.write(0, i, species, header_format)
-            wc.write(0, i, species, header_format)
-            i+=1
+    wq.write(0, 1, "Time", header_format)
+    wc.write(0, 1, "Time", header_format)
 
-        wq.write(0, i, "Time", header_format)
-        wc.write(0, i, "Time", header_format)
+    i = 2
+    for species in loadedSpecies: 
+        wq.write(0, i, species, header_format)
+        wc.write(0, i, species, header_format)
+        i+=1
 
-    #wq.set_column(i, 16383, None, {'hidden': True})
-    #wc.set_column(f'{i}:{16383}', None, None, {'hidden': True})
+    # wq.set_column(i, 16383, None, {'hidden': True})
+    # wc.set_column(f'{i}:{16383}', None, None, {'hidden': True})
 
-    #* writing header about fluxes
-    if nFlux > 0:   
-        
-        ic = 0
+    #* Export of fluxes information
+    if nFlux > 0: 
 
-        # Expand generation file: [iteration + time + start]
         if refName[0] == 1: 
-            wf.write(0, 0, "Iterations", header_format)
-            wf.write(0, 1, "Time", header_format)
-            ic = 2
-
-            for i, reaction in enumerate(reactions[:nFlux]):
-            
-                ind = ic
-                url = f'internal:Reactions!{ind}:{ind}'
-                tx = f"Flux {i+1}"
-                
-                wf.write_url(0, ic, url, string=tx, cell_format = header_format)
-
-                reagents_str = " + ".join(reaction["in"])
-                products_str = " + ".join(reaction["out"])
-                
-                if reaction["type"] is not ReactionType.FLOWIN and reaction["type"] is not ReactionType.FLOWOUT:
-                    wf.write_comment(0, i:=i+2, f'{reagents_str} -> {products_str}')
-                
-                else: 
-                    arrow =" \u2192 "
-                    if reaction["type"] is ReactionType.FLOWIN: 
-                        wf.write_comment(0, i:=i+2, f'{products_str} {arrow} [CSTR]')
-                    else: 
-                        wf.write_comment(0, i:=i+2, f'[CSTR] {arrow} {reagents_str}')
-                
-                ic+=1
-
-        # All generations file: [generation + start + time]
+            wf.write(0, 0, "Iteration", header_format)
         else: 
             wf.write(0, 0, "Generation", header_format)
-            wf.write(0, nFlux+1, "Time", header_format)
-            ic = 1
+        
+        wf.write(0, 1, "Time", header_format)
+        ic = 2
 
-            for i, reaction in enumerate(reactions[:nFlux]):
+        for i, reaction in enumerate(reactions[:nFlux]):
+        
+            ind = ic
+            url = f'internal:Reactions!{ind}:{ind}'
+            tx = f"Flux {i+1}"
             
-                ind = ic + 1
-                url = f'internal:Reactions!{ind}:{ind}'
-                tx = f"Flux {i+1}"
-                
-                wf.write_url(0, ic, url, string=tx, cell_format = header_format)
+            wf.write_url(0, ic, url, string=tx, cell_format = header_format)
 
-                reagents_str = " + ".join(reaction["in"])
-                products_str = " + ".join(reaction["out"])
-                
-                if reaction["type"] is not ReactionType.FLOWIN and reaction["type"] is not ReactionType.FLOWOUT:
-                    wf.write_comment(0, i:=i+1, f'{reagents_str} -> {products_str}')
-                
+            reagents_str = " + ".join(reaction["in"])
+            products_str = " + ".join(reaction["out"])
+            
+            if reaction["type"] is not ReactionType.FLOWIN and reaction["type"] is not ReactionType.FLOWOUT:
+                wf.write_comment(0, i:=i+2, f'{reagents_str} -> {products_str}')
+            
+            else: 
+                arrow =" \u2192 "
+                if reaction["type"] is ReactionType.FLOWIN: 
+                    wf.write_comment(0, i:=i+2, f'{products_str} {arrow} [CSTR]')
                 else: 
-                    arrow =" \u2192 "
-                    if reaction["type"] is ReactionType.FLOWIN: 
-                        wf.write_comment(0, i:=i+1, f'{products_str} {arrow} [CSTR]')
-                    else: 
-                        wf.write_comment(0, i:=i+1, f'[CSTR] {arrow} {reagents_str}')
-                
-                ic+=1
+                    wf.write_comment(0, i:=i+2, f'[CSTR] {arrow} {reagents_str}')
+            
+            ic+=1
 
     if nFlux == 0:
         return workbook, wc, wq
@@ -486,9 +455,15 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
     if nFlux > 0:
         return workbook, wc, wq, wf
 
-def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameters, currentTime, refName): 
+def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameters, currentTime, refName, verbose): 
 
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = allParameters[1]
+    # allParameters [0] -> parameters
+    # allParameters [1] -> environment
+    # allParameters [2] -> reaction
+    # refName [0] -> type of export
+    # refName [1] -> name of file
+
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = allParameters[1]
 
     if nFlux == 0:
         workbook, wc, wq = excelInit(chemicalSpecies, allParameters, currentTime, refName)
@@ -496,133 +471,152 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     if nFlux > 0:
         workbook, wc, wq, wf = excelInit(chemicalSpecies, allParameters, currentTime, refName)
 
-    #* Index writing
-    if nFlux == 0:
-        for i in range(1, len(matrixSimulation) + 1):
-            wq.write(i,0,i)
-            wc.write(i,0,i)
-
-    if nFlux > 0:
-        for i in range(1, len(matrixSimulation) + 1):
-            wq.write(i,0,i)
-            wc.write(i,0,i)
-            wf.write(i,0,i)
-
-    #* Timing export
-    if refName[0] == 1: 
-        row=1 
-        column = 1
-
-        if nFlux == 0:
-            for value in np.array(timeSimulation):
-                wq.write(row,column,value)
-                wc.write(row,column,value)
-                row+=1
-    
-        # print ("Stampa array tempi: ", timeSimulation)
-
-        if nFlux > 0:
-            for value in np.array(timeSimulation):
-                wq.write(row,column,value)
-                wc.write(row,column,value)
-                wf.write(row,column,value)
-                row+=1
-    
-    else: 
-        row=1 
-        column = len(chemicalSpecies)
-        
-        if nFlux == 0:
-            for value in np.array(timeSimulation):
-                wq.write(row,column,value)
-                wc.write(row,column,value)
-                row+=1
-
-
-        if nFlux > 0:
-            for value in np.array(timeSimulation):
-                wq.write(row,column,value)
-                wc.write(row,column,value)
-                row+=1
-
-            row=1 
-            column = nFlux+1
-            for value in np.array(timeSimulation):
-                wf.write(row,column,value)
-                row+=1 
-        
-        
-    #* Data export [quantities and concentrations] + [any export fluxes]
-
     chemicalVariation = [row[:len(chemicalSpecies)] for row in matrixSimulation]
     if nFlux > 0: 
         fluxes = [row[-nFlux:] for row in matrixSimulation]
-
-    if refName[0] == 1: 
+    
+    # export generation data to be expanded at a defined interval 
+    if refName [0] == 1 and genExp_time != -1:
         
+        i = 1
         if nFlux == 0:
-            row=1
-            for matLine in chemicalVariation:
-                column=2
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
+            for interval in np.arange(0, max(timeSimulation), genExp_time):
+                index = np.argmin(np.abs(np.array(timeSimulation) - interval))
+                
+                wq.write(i, 0, index)
+                wc.write(i, 0, index)
+
+                wq.write(i, 1, timeSimulation[index])
+                wc.write(i, 1, timeSimulation[index])
+
+                column = 2
+                for value in chemicalVariation[index]:
+                    wq.write(i, column, value)
+                    wc.write(i, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
+                    column += 1
+                i+=1
         
+        i=1
+        if nFlux > 0:
+            for interval in np.arange(0, max(timeSimulation), genExp_time):
+                index = np.argmin(np.abs(np.array(timeSimulation) - interval))
+                
+                wq.write(i, 0, index)
+                wc.write(i, 0, index)
+
+                wq.write(i, 1, timeSimulation[index])
+                wc.write(i, 1, timeSimulation[index])
+
+                column = 2
+                for value in chemicalVariation[index]:
+                    wq.write(i, column, value)
+                    wc.write(i, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
+                    column += 1
+                i+=1
+            
+            i=1
+            for interval in np.arange(0, max(timeSimulation), genExp_time):
+                index = np.argmin(np.abs(np.array(timeSimulation) - interval))
+
+                wf.write(i, 0, index)
+
+                wf.write(i, 1, timeSimulation[index])
+
+                column = 2
+                for value in fluxes[index]:
+                    wf.write(i, column, value)
+                    column += 1
+                i+=1
+
+        i+=1
+        wq.write(i, 0, len(chemicalVariation))
+        wc.write(i, 0, len(chemicalVariation))
+
+        wq.write(i, 1, timeSimulation[-1])
+        wc.write(i, 1, timeSimulation[-1])
+
+        column = 2
+        for value in chemicalVariation[-1]:
+            wq.write(i, column, value)
+            wc.write(i, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
+            column += 1
+        
+        cell_format = workbook.add_format({'bg_color': '#00FFFF'})
+        wq.set_row(i, None, cell_format)
+        wc.set_row(i, None, cell_format)
+
         if nFlux > 0: 
-            row=1
-            for matLine in chemicalVariation:
-                column=2
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
+            wf.write(i, 0, len(chemicalVariation))
+            wf.write(i, 1, timeSimulation[-1])
 
-            row=1
-            for matLine in fluxes:
-                column=2
-                for value in matLine:
-                    wf.write(row, column, value)
-                    column+=1
-                row+=1
-
-    else: 
-        if nFlux == 0:
-            row=1
-            for matLine in chemicalVariation:
-                column=1
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
+            column = 2
+            for value in fluxes[-1]:
+                wf.write(i, column, value)
+                column += 1
         
+            wf.set_row(i, None, cell_format)
+
+    # export generation data standard
+    else: 
+        
+        #* Index writing
+        if nFlux == 0:
+            for i in range(1, len(matrixSimulation) + 1):
+                wq.write(i,0,i)
+                wc.write(i,0,i)
+
+        if nFlux > 0:
+            for i in range(1, len(matrixSimulation) + 1):
+                wq.write(i,0,i)
+                wc.write(i,0,i)
+                wf.write(i,0,i)
+
+        #* Timing export
+        row = 1 
+        column = 1        
+        
+        if nFlux == 0:
+            for value in np.array(timeSimulation):
+                wq.write(row,column,value)
+                wc.write(row,column,value)
+                row+=1
+       
+        if nFlux > 0:
+            for value in np.array(timeSimulation):
+                wq.write(row,column,value)
+                wc.write(row,column,value)
+                wf.write(row,column,value)
+                row+=1
+
+        #* Data export [quantities and concentrations] + [any export fluxes]
+        row=1
+        for matLine in chemicalVariation:
+            column=2
+            for value in matLine:
+                wq.write(row, column, value)
+                wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
+                column+=1
+            row+=1
+
         if nFlux > 0:
             row=1
-            for matLine in chemicalVariation:
-                column=1
-                for value in matLine:
-                    wq.write(row, column, value)
-                    wc.write(row, column, getConcentration (value, matLine[0], allParameters[0][2], allParameters[0][1]))
-                    column+=1
-                row+=1
-
-            row=1
             for matLine in fluxes:
-                column=1
+                column=2
                 for value in matLine:
                     wf.write(row, column, value)
                     column+=1
                 row+=1
-            
+
+
+
+    """
     wc.set_default_row(hide_unused_rows=True)
     wq.set_default_row(hide_unused_rows=True)
     
     if nFlux > 0: 
         wf.set_default_row(hide_unused_rows=True)
-
+    """
+        
     workbook.close()
 
 def printFinalInfo (currentTime, parameters, environment, chemicalSpecies, reactions, matrixSimulation): 

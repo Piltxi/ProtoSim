@@ -3,7 +3,7 @@ import numpy as np
 import time
 from tqdm import tqdm
 
-from chemicalio import excelExport, excelInit, map_species_to_indices, getConcentration
+from chemicalio import excelInit, map_species_to_indices, getConcentration, excelExport
 from reactions import ReactionType
 from errorsCheck import checkProtoSim
 
@@ -14,7 +14,7 @@ chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
 """
 
 def scalar_multiply(vector, scalar):
@@ -68,7 +68,7 @@ def callOdeSolver (ode_function, time, protoAct, parameters, mapReactions, delta
 
     return var
 
-def solver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
+def solver (ode_function, interval, protoGen, mapReactions, parameters, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
 
     verbose, ecomode = userCheck
 
@@ -131,7 +131,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, environm
 
 def simulation (verbose, ecomode, currentTime, environment, parameters, chemicalSpecies, reactions): 
 
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving = environment
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
 
     # Preparing to directly export data to the csv file.
     if nFlux == 0:
@@ -170,6 +170,7 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             if verbose: 
                 print ("Start generation n.", i+1)
 
+            # possible deactivation of eco mode for generation export to be expanded 
             if i in gen_exp: 
                 if ecomodeHistory:
                     if verbose:
@@ -178,24 +179,23 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
-            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
             endTime = time.time()
 
+            # possible export of  generation export to be expanded 
             if i in gen_exp: 
                 controlIndex=i
-                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], currentTime, [1, f"expand {i+1}"])
+                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], currentTime, [1, f"expand {i+1}"], verbose)
                 if verbose: 
                     print (f"\n\t!]expansion of imported generation [{i+1}] exported.\n")
 
             executionTime = endTime - startTime
 
             if verbose: 
-
                 if ecomode:
                     print(f"Duplication Time: ", solverTime, end="")
                 else: 
                     print(f"Duplication Time: ", solverTime[-1], end = "")
-
                 if executionTime > 60:
                     minutes=int(executionTime/60)
                     seconds=round(executionTime%60)
@@ -215,6 +215,7 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             if verbose: 
                 print ("End generation n.", i+1, "\t", protoGen, "\n")
 
+            # Expanded generation line highlighting
             if i in gen_exp: 
                 cell_format = workbook.add_format({'bg_color': '#FFFF00'})
                 index = i
@@ -223,47 +224,51 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
                 if nFlux > 0:
                     wf.set_row(index+1, None, cell_format)
 
+            # writing index
             wq.write(i+1, 0, i+1)
-            for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
-                wq.write(i+1, j, protoGen[j-1])
-            
+            wc.write(i+1, 0, i+1)
+
             if nFlux > 0:
                 wf.write(i+1, 0, i+1)
-                for k in range(len(chemicalSpecies), len(protoGen)):
-                    wf.write(i+1, k - len(chemicalSpecies) + 1, protoGen[k])
-
-            if ecomode: 
-                wq.write(i + 1, len(chemicalSpecies) + 1, solverTime)
-                if nFlux > 0: 
-                    wf.write(i + 1, nFlux+1, solverTime)
-            else:
-                wq.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
-                if nFlux > 0: 
-                    wf.write(i + 1, nFlux+1, solverTime[-1])
-
-            wc.write(i+1, 0, i+1)
-            for j, (species, _) in enumerate(chemicalSpecies.items(), start=1):
-                wc.write(i+1, j, getConcentration (protoGen[j-1], protoGen[0], parameters[2], parameters[1]))
             
+            # writing timing
             if ecomode: 
-                wc.write(i + 1, len(chemicalSpecies) + 1, solverTime)
+                wq.write(i + 1, 1, solverTime)
+                wc.write(i + 1, 1, solverTime)
+                
+                if nFlux > 0: 
+                    wf.write(i + 1, 1, solverTime)
+            
             else:
-                wc.write(i + 1, len(chemicalSpecies) + 1, solverTime[-1])
+                wq.write(i + 1, 1, solverTime[-1])
+                wc.write(i + 1, 1, solverTime[-1])
+                
+                if nFlux > 0: 
+                    wf.write(i + 1, 1, solverTime[-1])
+
+            for j in range(len(chemicalSpecies)):   
+                wq.write(i+1, j + 2, protoGen[j])
+                wc.write(i+1, j + 2, getConcentration (protoGen[j], protoGen[0], parameters[2], parameters[1]))
+
+            if nFlux > 0:
+                for k in range(len(chemicalSpecies), len(protoGen)):
+                    wf.write(i+1, k - len(chemicalSpecies) + 2, protoGen[k])
 
             # Duplication
             protoGen[0] = protoGen[0]/2.
             
-            # Without Flux Analysis
+            # protocell calving
             for i in range(1,len(protoGen)-nFlux):
                 protoGen[i]=protoGen[i]*calving
             
-            # With Flux Analysis
+            # fluxes restoring for new generation
             for i in range(nFlux):
                 protoGen[-1-i] = 0 
-            
+        
             if not verbose:
                 progress_bar.update(1)
 
+            # possible export of  generation export to be expanded 
             if controlIndex in gen_exp: 
                 if not ecomode: 
                     if ecomodeHistory:
@@ -288,6 +293,10 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
     return (time_, mat)
 
 def ode_function (time, protoAct, parameters): 
+
+    # time
+    # protoAct -> [KinCoefficients, protoX]
+    # parameters -> [parameters, reaction, nFlux]
 
     nFlux = parameters[2]
     protoX = protoAct[1][:]

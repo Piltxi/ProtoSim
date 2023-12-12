@@ -71,7 +71,10 @@ def checkProtoSim (arg, data):
 
         case 7: 
 
-            if data [0] == -1: 
+            if data [1] < 1: 
+                print ("ERROR 07 - invalid number of iterations [nIterates] detected")
+
+            if data [0] == -1 and data[2] == -1:
                 return
 
             for element in data [0]: 
@@ -82,6 +85,20 @@ def checkProtoSim (arg, data):
             for element in data [0]: 
                 element-=1
 
+            if data [2] != -1:
+                if data [2] <= 0:
+                    print(f"ERROR 7 - unknown time of export generations of expansion\nIf you don't want to define the time, type '-1' in the parameters file.")
+                    quit()
+
+            if data [2] != -1 and data [0] == -1: 
+                print(f"ERROR 7 - unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
+                quit()
+
+            if not data[0] and data [2] != -1:
+                print(f"ERROR 7 - unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
+                quit()
+
+        
         case 8: 
 
             if data [0] <= 0:
