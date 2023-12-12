@@ -68,7 +68,7 @@ def callOdeSolver (ode_function, time, protoAct, parameters, mapReactions, delta
 
     return var
 
-def solver (ode_function, interval, protoGen, mapReactions, parameters, environment, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
+def solver (ode_function, interval, protoGen, mapReactions, parameters, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
 
     verbose, ecomode = userCheck
 
@@ -179,7 +179,7 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
-            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, environment, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
             endTime = time.time()
 
             # possible export of  generation export to be expanded 
@@ -249,7 +249,6 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             for j in range(len(chemicalSpecies)):   
                 wq.write(i+1, j + 2, protoGen[j])
                 wc.write(i+1, j + 2, getConcentration (protoGen[j], protoGen[0], parameters[2], parameters[1]))
-
 
             if nFlux > 0:
                 for k in range(len(chemicalSpecies), len(protoGen)):
