@@ -619,7 +619,6 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         
     workbook.close()
 
-
 def printFinalInfo (currentTime, parameters, environment, chemicalSpecies, reactions, matrixSimulation): 
 
     print ("\n->END SIMULATION<-")
