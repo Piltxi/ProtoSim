@@ -119,7 +119,11 @@ def checkProtoSim (arg, data):
                     quit()
 
         case 9: 
-            print (f"\nERROR 09 - Tollerance Test: empty protoX [{data}]\n")
+            print (f"\nERROR 09 - tollerance Test: empty protoX [{data}]\n")
+            quit()
+
+        case 10:
+            print (f"\nERROR 10 - species '{data}' not found in loadedSpecies\n")
             quit()
 
         case _: 
