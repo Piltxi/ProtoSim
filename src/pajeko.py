@@ -1,7 +1,5 @@
 import argparse
 from datetime import datetime
-from enum import Enum
-from numpy import double
 from openpyxl import load_workbook
 import os
 import subprocess
@@ -63,17 +61,39 @@ def createPajekConfiguration (chemicalSpecies, reactions):
         file.write ("*Arcs\n")
         for item in reactions:
             cataList =item["catalyst"]
+
+            if item ["k"] != "None":
+                ll = item ["k"]
+            else:
+                ll = "1"
+
             for cat, iCat in cataList:
+
                 index = map_single_species (cat, chemicalSpecies)
                 index += 1
-                file.write (f'\t{index} {iR+ch} {ll} c Blue x Dashed\n')
+
+                if iCat == 0: 
+                    file.write (f'\t{index} {iR+ch} {-ll} c Blue\n')
+                
+                if iCat > 0: 
+                    file.write (f'\t{index} {iR+ch} {-ll} c Black\n')
+
+                if iCat < 0: 
+                    file.write (f'\t{index} {iR+ch} {-ll} c Red\n')
 
             for iStart in item["in"]:
                 for iOut in item["out"]: 
                     file.write (f'\t{iStart} {iR+ch} {ll}\n')
                     file.write (f'\t{iR+ch} {iOut} {ll}\n')
             iR+=1
-                    
+
+        file.write ("*Partition Partition into two subsets in N1\n")
+        file.write (f"*Vertices {len(chemicalSpecies)+len(reactions)}\n")
+        for i in enumerate (chemicalSpecies):
+            file.write ("1\n")
+        for i in enumerate (reactions):
+            file.write ("2\n")
+                      
 def increase_indices_by_one(reactions_list):
     for reaction in reactions_list:
         if reaction["in"] is not None:
@@ -88,13 +108,16 @@ def reactionsCleaning (inReactions):
     for reaction in reactions: 
         cataList = reaction ["catalyst"]
         for catalyst, indexCata in cataList:
-            if indexCata == 0:
+            
+            if indexCata == 0: # species only catalyzes reaction
                 reaction["in"].remove(catalyst)
                 reaction["out"].remove(catalyst)
-            if indexCata > 0:
+            
+            if indexCata > 0: # species catalyzes and is produced in reaction
                 reaction["in"].remove(catalyst)
                 reaction["out"].remove(catalyst)
-            if indexCata < 0:
+            
+            if indexCata < 0: # species catalyzes and reacts in reaction
                 reaction["in"].remove(catalyst)
                 reaction["out"].remove(catalyst)
 
@@ -157,7 +180,7 @@ def loadInfoFromSim (fileName, verbose):
 
         iReaction = i
 
-        flux = "None"
+        fluxReaction = "None"
         if fluxParameter > 0:
             if iReaction <= fluxParameter: 
                 fluxReaction = sheetFlux.cell(row=generationNumber+1, column=iReaction+2).value
