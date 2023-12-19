@@ -8,3 +8,5 @@ exe/
 .DS_Store
 screen/
 /in/*
+/git
+/simPaj
