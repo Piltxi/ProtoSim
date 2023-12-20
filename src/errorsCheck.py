@@ -73,6 +73,7 @@ def checkProtoSim (arg, data):
 
             if data [1] < 1: 
                 print ("ERROR 07 - invalid number of iterations [nIterates] detected")
+                quit()
 
             if data [0] == -1 and data[2] == -1:
                 return
