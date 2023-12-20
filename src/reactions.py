@@ -1,4 +1,5 @@
 from enum import Enum
+
 from errorsCheck import checkProtoSim
 
 class ReactionType (Enum): 
@@ -56,3 +57,45 @@ def identifyType (reaction, verbose):
             return ReactionType.CONDENSATION_32
 
     checkProtoSim(2, reaction)
+
+def identifyCatalysts (reaction, verbose):
+    
+    reactionsParts = reaction.strip().split(";")
+    reaction_str = reactionsParts[0].strip()
+    reagents, products = reaction_str.split('>')
+    
+    reagents = [reagent.strip() for reagent in reagents.split('+')]
+    products = [product.strip() for product in products.split('+')]
+
+    catalysts = [species for species in reagents if species in products]
+    catalysts = list(set(catalysts))
+
+    cataList = []
+
+    for species in catalysts:
+            occurrences_in_reagents = reagents.count(species)
+            occurrences_in_products = products.count(species)
+            result = occurrences_in_products - occurrences_in_reagents
+
+            if result == 0:
+
+                if verbose: 
+                    print (species, "-species only catalyzes reaction")
+
+                cataList.append ((species, result))
+
+            elif result > 0:
+                
+                if verbose: 
+                    print (species, "-species catalyzes and is produced in reaction")
+                
+                cataList.append ((species, result))
+            
+            elif result < 0:
+                
+                if verbose: 
+                    print (species, "-species catalyzes and reacts in reaction")
+                
+                cataList.append ((species, result))
+    
+    return cataList

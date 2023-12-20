@@ -35,7 +35,7 @@ def importParameters (verbose, file):
 
     parametersFile = "../input/"
     reactionsFile = "../input/"
-    
+
     if file: 
         parametersUser = input("Type the name of text file with parameters> ")
         reactionsUser = input("Type the name of text file with reaction> ")
@@ -193,6 +193,13 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
                 print (f"{i+1}] {products_str} {arrow} [CSTR] \nSubstance Fraction: ", reaction["k"], "\tType: ", reaction["type"].value, "\n")
             else: 
                 print (f"{i+1}] [CSTR] {arrow} {reagents_str}\nSubstance Fraction: ", reaction["k"], "\tType: ", reaction["type"].value, "\n")
+
+def map_single_species (species, loadedSpecies): 
+    
+    if species in loadedSpecies:
+        return loadedSpecies.index(species)
+    else:
+        checkProtoSim(10, species)
 
 def map_species_to_indices(reactions, loadedSpecies):
     index_based_reactions = []
