@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime
+from tabnanny import verbose
 from openpyxl import load_workbook
 import os
 import subprocess
@@ -7,7 +8,35 @@ import subprocess
 from chemicalio import map_species_to_indices, map_single_species
 from reactions import *
 
-def createPajekConfiguration (chemicalSpecies, reactions):
+def setFlux (flux, iCat, verbose):
+
+    if flux == "None": 
+        
+        if verbose: 
+            print ("reaction flux not detected")
+
+        # return "_"
+        return ""
+        
+    if verbose: 
+        print (f"Currently working on: F[{flux}] and iC[{iCat}]")
+
+    if iCat != 0:
+        number = flux * abs(iCat)
+    else: 
+        number = flux
+
+    if verbose: 
+        print ("flux obtained:", number)
+    
+    fluxToPrint = "{:.3e}".format(number)
+
+    if verbose: 
+        print ("flux string:", fluxToPrint)
+
+    return fluxToPrint
+
+def createPajekConfiguration (chemicalSpecies, reactions, verbose):
 
     #* path directory definition
     directory_name = "../out"
@@ -60,12 +89,9 @@ def createPajekConfiguration (chemicalSpecies, reactions):
         ch = len(chemicalSpecies)
         file.write ("*Arcs\n")
         for item in reactions:
+            
             cataList =item["catalyst"]
-
-            if item ["k"] != "None":
-                ll = item ["k"]
-            else:
-                ll = "1"
+            # setFlux(item["k"], iCat, verbose)
 
             for cat, iCat in cataList:
 
@@ -73,18 +99,18 @@ def createPajekConfiguration (chemicalSpecies, reactions):
                 index += 1
 
                 if iCat == 0: 
-                    file.write (f'\t{index} {iR+ch} {-ll} c Blue\n')
+                    file.write (f'\t{index} {iR+ch} {iCat} c Blue l "{setFlux(item["k"], iCat, verbose)}"\n')
                 
                 if iCat > 0: 
-                    file.write (f'\t{index} {iR+ch} {-ll} c Black\n')
+                    file.write (f'\t{index} {iR+ch} {iCat} c Black l "{setFlux(item["k"], iCat, verbose)}"\n')
 
                 if iCat < 0: 
-                    file.write (f'\t{index} {iR+ch} {-ll} c Red\n')
+                    file.write (f'\t{index} {iR+ch} {iCat} c Red l "{setFlux(item["k"], iCat, verbose)}"\n')
 
             for iStart in item["in"]:
                 for iOut in item["out"]: 
-                    file.write (f'\t{iStart} {iR+ch} {ll}\n')
-                    file.write (f'\t{iR+ch} {iOut} {ll}\n')
+                    file.write (f'\t{iStart} {iR+ch} 1 l "{setFlux(item["k"], 0, verbose)}"\n')
+                    file.write (f'\t{iR+ch} {iOut} 1 l "{setFlux(item["k"], 0, verbose)}"\n')
             iR+=1
 
         file.write ("*Partition Partition into two subsets in N1\n")
@@ -137,12 +163,24 @@ def loadInfoFromSim (fileName, verbose):
         print ("iterates recognized: ", nIteratesParameter)
     
     sheetFlux = None
+    generationNumber = -1
     if fluxParameter > 0: 
-        generationNumber = int(input ("Type the generation number to view the fluxes> "))
-        checkProtoSim(7, [[generationNumber], nIteratesParameter, -1])
-        sheetFlux = workbook['Flux']
-        generationNumber+=1
-    
+        generationNumber_ = input ("Type the generation number to view the fluxes> ")
+        if generationNumber_.strip() == "":
+            if verbose:
+                print ("flux monitoring disabled")
+        else:
+            try:
+                generationNumber = int (generationNumber_)
+                checkProtoSim(7, [[generationNumber], nIteratesParameter, -1])
+                sheetFlux = workbook['Flux']
+                generationNumber+=1
+            except:
+                print ("Please enter a valid integer")
+
+    if verbose: 
+        print (f"Flux monitoring activated for generation n. {generationNumber}")
+
     #* Chemical Species Reading
     sheet = workbook['Chemical Species']
     chemicalSpecies = [item.value for column in sheet.iter_cols(min_col=1, max_col=1) for item in column][1:]
@@ -181,10 +219,11 @@ def loadInfoFromSim (fileName, verbose):
         iReaction = i
 
         fluxReaction = "None"
-        if fluxParameter > 0:
-            if iReaction <= fluxParameter: 
-                fluxReaction = sheetFlux.cell(row=generationNumber+1, column=iReaction+2).value
-
+        if generationNumber != -1:
+            if fluxParameter > 0:
+                if iReaction <= fluxParameter: 
+                    fluxReaction = sheetFlux.cell(row=generationNumber, column=iReaction+2).value
+                    
         reaction_data = {
                         "in": reagents,
                         "out": products,
@@ -235,4 +274,4 @@ if __name__ == "__main__":
         fileName = fileName + "sim.xlsx"
 
     chemicalSpecies, reactions = loadInfoFromSim (fileName, args.verbose)
-    createPajekConfiguration (chemicalSpecies, reactions)
+    createPajekConfiguration (chemicalSpecies, reactions, args.verbose)
