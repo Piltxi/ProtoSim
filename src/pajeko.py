@@ -154,18 +154,20 @@ def loadInfoFromSim (fileName, verbose):
         generationNumber_ = input ("Type the generation number to view the fluxes> ")
         if generationNumber_.strip() == "":
             if verbose:
-                print ("flux monitoring disabled")
+                print ("] flux monitoring disabled")
         else:
             try:
                 generationNumber = int (generationNumber_)
-                checkProtoSim(7, [[generationNumber], nIteratesParameter, -1])
                 sheetFlux = workbook['Flux']
-                generationNumber+=1
             except:
                 print ("Please enter a valid integer")
 
-    if verbose: 
-        print (f"Flux monitoring activated for generation n. {generationNumber}")
+    if generationNumber != -1:
+        checkProtoSim(7, [[generationNumber], nIteratesParameter, -1])
+        generationNumber+=1
+    
+    if verbose and generationNumber != -1: 
+        print (f"] flux monitoring activated for generation n. {generationNumber-1}")
 
     #* Chemical Species Reading
     sheet = workbook['Chemical Species']
