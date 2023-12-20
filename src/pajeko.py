@@ -1,11 +1,10 @@
 import argparse
 from datetime import datetime
-from tabnanny import verbose
 from openpyxl import load_workbook
 import os
 import subprocess
 
-from chemicalio import map_species_to_indices, map_single_species
+from chemicalio import map_species_to_indices, map_single_species, printMapReactions
 from reactions import *
 
 def setFlux (flux, iCat, verbose):
@@ -15,7 +14,6 @@ def setFlux (flux, iCat, verbose):
         if verbose: 
             print ("reaction flux not detected")
 
-        # return "_"
         return ""
         
     if verbose: 
@@ -32,7 +30,7 @@ def setFlux (flux, iCat, verbose):
     fluxToPrint = "{:.3e}".format(number)
 
     if verbose: 
-        print ("flux string:", fluxToPrint)
+        print ("flux string:", fluxToPrint, "\n\n")
 
     return fluxToPrint
 
@@ -73,25 +71,12 @@ def createPajekConfiguration (chemicalSpecies, reactions, verbose):
             i+=1
             file.write(f"\t{i} \"R{k+1}\"\t box ic Red\n")
 
-        '''ll=1 
-        iR = 1
-        ch = len(chemicalSpecies)
-        file.write ("*Arcs\n")
-        for item in reactions:
-            for iStart in item["in"]:
-                for iOut in item["out"]: 
-                    file.write (f'\t{iStart} {iR+ch} {ll}\n')
-                    file.write (f'\t{iR+ch} {iOut} {ll}\n')
-            iR+=1'''
-
-        ll=1 
         iR = 1
         ch = len(chemicalSpecies)
         file.write ("*Arcs\n")
         for item in reactions:
             
             cataList =item["catalyst"]
-            # setFlux(item["k"], iCat, verbose)
 
             for cat, iCat in cataList:
 
@@ -99,18 +84,18 @@ def createPajekConfiguration (chemicalSpecies, reactions, verbose):
                 index += 1
 
                 if iCat == 0: 
-                    file.write (f'\t{index} {iR+ch} {iCat} c Blue l "{setFlux(item["k"], iCat, verbose)}"\n')
+                    file.write ( f'\t{index} {iR+ch} {-1} c Blue l "{setFlux(item["k"], iCat, verbose)}" \n')
                 
                 if iCat > 0: 
-                    file.write (f'\t{index} {iR+ch} {iCat} c Black l "{setFlux(item["k"], iCat, verbose)}"\n')
+                    file.write (f'\t{index} {iR+ch} {-iCat} c Black l "{setFlux(item["k"], iCat, verbose)}"\n')
 
                 if iCat < 0: 
                     file.write (f'\t{index} {iR+ch} {iCat} c Red l "{setFlux(item["k"], iCat, verbose)}"\n')
 
             for iStart in item["in"]:
-                for iOut in item["out"]: 
-                    file.write (f'\t{iStart} {iR+ch} 1 l "{setFlux(item["k"], 0, verbose)}"\n')
-                    file.write (f'\t{iR+ch} {iOut} 1 l "{setFlux(item["k"], 0, verbose)}"\n')
+                file.write (f'\t{iStart} {iR+ch} 1 l "{setFlux(item["k"], 0, verbose)}"\n')
+            for iOut in item["out"]: 
+                file.write (f'\t{iR+ch} {iOut} 1 l "{setFlux(item["k"], 0, verbose)}"\n')
             iR+=1
 
         file.write ("*Partition Partition into two subsets in N1\n")
@@ -119,6 +104,7 @@ def createPajekConfiguration (chemicalSpecies, reactions, verbose):
             file.write ("1\n")
         for i in enumerate (reactions):
             file.write ("2\n")
+    print (f".paj configuration file was successfully saved in /out/pajek {currentData}/graphSim {currentTime} .paj")
                       
 def increase_indices_by_one(reactions_list):
     for reaction in reactions_list:
@@ -127,25 +113,25 @@ def increase_indices_by_one(reactions_list):
         if reaction["out"] is not None:
             reaction["out"] = [idx + 1 if idx is not None else None for idx in reaction["out"]]
 
-def reactionsCleaning (inReactions): 
+def reactionsCleaning (inReactions, verbose): 
 
+    if verbose: 
+        print ("\nIndexed reactions before cleaning:")
+        for reaction in inReactions: 
+            print (reaction["in"], " > ", reaction["out"])
+        
     reactions = inReactions
 
     for reaction in reactions: 
         cataList = reaction ["catalyst"]
         for catalyst, indexCata in cataList:
-            
-            if indexCata == 0: # species only catalyzes reaction
-                reaction["in"].remove(catalyst)
-                reaction["out"].remove(catalyst)
-            
-            if indexCata > 0: # species catalyzes and is produced in reaction
-                reaction["in"].remove(catalyst)
-                reaction["out"].remove(catalyst)
-            
-            if indexCata < 0: # species catalyzes and reacts in reaction
-                reaction["in"].remove(catalyst)
-                reaction["out"].remove(catalyst)
+            reaction["in"] = [reagent for reagent in reaction["in"] if reagent != catalyst]
+            reaction["out"] = [product for product in reaction["out"] if product != catalyst]
+    
+    if verbose: 
+        print ("\nIndexed reactions after cleaning:")
+        for reaction in reactions: 
+            print (reaction["in"], " > ", reaction["out"])
 
     return reactions
 
@@ -238,24 +224,20 @@ def loadInfoFromSim (fileName, verbose):
 
         reactions.append(reaction_data)
 
-    cReactions = reactionsCleaning (reactions)
+    cleanedReactions = reactionsCleaning (reactions, verbose)
 
-    index = map_species_to_indices (cReactions, chemicalSpecies)
-    increase_indices_by_one(index)
+    mappedReactions = map_species_to_indices (cleanedReactions, chemicalSpecies)
+    increase_indices_by_one(mappedReactions)
 
-    for rw, rW in zip(cReactions, index):
+    if verbose: 
+        print ("\nIndexed and mapped reactions:")
+        printMapReactions(mappedReactions)
+
+    for rw, rW in zip(cleanedReactions, mappedReactions):
         if "catalyst" in rw:
             rW["catalyst"] = rw["catalyst"]
 
-    '''for item in index: 
-        print ("start: ", item["in"], "dest: ", item["out"])
-    
-    for item in index: 
-        for iStart in item["in"]:
-            for iOut in item ["out"]: 
-                print ("start: ", iStart, "dest: ", iOut)'''
-
-    return chemicalSpecies, index
+    return chemicalSpecies, mappedReactions
 
 if __name__ == "__main__":
 
