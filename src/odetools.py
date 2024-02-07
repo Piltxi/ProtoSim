@@ -13,8 +13,8 @@ parameters = allParameters[0]
 chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
-# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
+# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, controlTollerance, zero_threshold, effects_threshold]; 
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, controlTollerance, zero_threshold, effects_threshold = environment
 """
 
 def scalar_multiply(vector, scalar):
@@ -41,7 +41,7 @@ def divisionTest(time, protoAct, parameters):
     else:
         return True
 
-def tolleranceTest(protoAct, protoNext, s_min, s_max, nFlux, dt):
+def tolleranceTest(protoAct, protoNext, s_min, s_max, controlTollerance, nFlux, dt):
 
     if not protoNext:
         checkProtoSim (9, "false protoNext")
@@ -51,7 +51,7 @@ def tolleranceTest(protoAct, protoNext, s_min, s_max, nFlux, dt):
         if protoNext[i] < 0:
             return True
         
-        if protoNext[i]!=0 and protoAct[i] != 0:
+        if protoNext[i]! >= controlTollerance and protoAct[i] >= controlTollerance:
             var = protoNext[i] / protoAct[i]
             if var > s_max or var < s_min:
                 return True
@@ -81,7 +81,8 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, division
 
     # Resolution of negative quantities
     for i in range (len(protoAct)-nFlux):
-            if protoAct[i]<0: 
+            # zero threshold to set chemical quantity 
+            if protoAct[i]< tollerance[3]: 
                     protoAct[i] = 0 
  
     if not ecomode:
@@ -99,12 +100,12 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, division
 
         protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
 
-        if not tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
+        if not tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], tollerance[2], nFlux, deltaT):
             deltaT *= 1.2
             if deltaT > maxStep:
                 deltaT = maxStep
             
-        while tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
+        while tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], tollerance[2], nFlux, deltaT):
             deltaT /= 2
             protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
 
@@ -131,7 +132,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, division
 
 def simulation (verbose, ecomode, currentTime, environment, parameters, chemicalSpecies, reactions): 
 
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, controlTollerance, zero_threshold, effects_threshold = environment
 
     # Preparing to directly export data to the csv file.
     if nFlux == 0:
@@ -179,7 +180,7 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
-            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, max_step, [toll_min, toll_max, controlTollerance, zero_threshold], nFlux, coefficient, [verbose, ecomode])
             endTime = time.time()
 
             # possible export of  generation export to be expanded 
@@ -300,6 +301,11 @@ def ode_function (time, protoAct, parameters):
 
     nFlux = parameters[2]
     protoX = protoAct[1][:]
+
+    for i in range(len(protoX)-nFlux):
+        if protoX[i] < parameters:
+            protoX[i]=0
+
     coefficients = protoAct[0] [:]
     
     Dx=scalar_multiply(protoX, 0)
