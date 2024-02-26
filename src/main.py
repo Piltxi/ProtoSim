@@ -12,8 +12,8 @@ parameters = allParameters[0]
 chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
-# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, controlTollerance, zero_threshold, effects_threshold]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, controlTollerance, zero_threshold, effects_threshold = environment
+# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
 """
 
 def main(verbose, reset, file, importView, ecomode):
