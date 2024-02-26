@@ -13,8 +13,8 @@ parameters = allParameters[0]
 chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
-# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, controlTollerance, zero_threshold, effects_threshold]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, gen_expTime, controlTollerance, zero_threshold, effects_threshold = environment
+# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
+nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, gen_expTime = environment
 """
 
 def getOrdinal (number):
@@ -59,9 +59,6 @@ def importParameters (verbose, file):
     nFlux = eval(fi.readline().split()[0]) 
     gen_exp = [int(x) for x in fi.readline().split() if x.isdigit()]
     genExp_timing = eval(fi.readline().split()[0]) 
-    controlTollerance = eval(fi.readline().split()[0])
-    zero_threshold = eval(fi.readline().split()[0]) 
-    effects_threshold = eval(fi.readline().split()[0]) 
 
     fi.close()
 
@@ -75,7 +72,7 @@ def importParameters (verbose, file):
     parameters = [chi, delta, ro, Da, div]
 
     # List of environment sets
-    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing, controlTollerance, zero_threshold, effects_threshold]; 
+    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing]; 
     
     chemicalSpecies = {}
     reactions = []
@@ -153,7 +150,7 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     sChi = "\u03c7"
 
     chi, delta, ro, Da, div = parameters
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing, controlTollerance, zero_threshold, effects_threshold = environment
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing = environment
 
     print("\nRecognized Parameters:")
     print("]", sDelta, ":\t", delta)
@@ -169,10 +166,6 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     print("]", "end time:\t",t_end)
     print("]", "max  step:\t",max_step)       
     print("]", "min toll. :",toll_min, "\t]", "max toll. :",toll_max)
-    print("]", "control toll. :",controlTollerance)
-    print("]", "zero threshold:",zero_threshold)
-    print("]", "effects  threshold:",effects_threshold)
-
     
     (gen_exp := [value + 1 for value in gen_exp])
     gen_exp_str = ', '.join(map(str, gen_exp))
@@ -260,7 +253,7 @@ def printMapReactions (mapReactions):
 def excelInit (chemicalSpecies, allParameters, currentTime, refName): 
 
     chi, delta, ro, Da, div = allParameters[0]
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, controlTollerance, zero_threshold, effects_threshold = allParameters[1]
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = allParameters[1]
     reactions = allParameters[2]
 
     #* path directory definition
@@ -341,12 +334,7 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
         "max step": max_step,
         "min toll.": toll_min,
         "max toll.": toll_max,
-        "control toll.": controlTollerance,
-        "zero threshold": zero_threshold,
-        "effects threshold": effects_threshold,
     }
-
-    # 
 
     we.write(0, 0, "Parameter", header_format)
     we.write(0, 1, "Value", header_format)
