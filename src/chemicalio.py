@@ -9,12 +9,12 @@ from reactions import identifyType, ReactionType
 
 """
 parameters = allParameters[0]
-#parameters = [chi, delta, ro, Da, div]
-chi, delta, ro, Da, div = parameters
+# parameters = [chi, delta, ro, Da, div]
+# chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
-# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, gen_expTime = environment
+# environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects]; 
+# nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 """
 
 def getOrdinal (number):
@@ -59,6 +59,9 @@ def importParameters (verbose, file):
     nFlux = eval(fi.readline().split()[0]) 
     gen_exp = [int(x) for x in fi.readline().split() if x.isdigit()]
     genExp_timing = eval(fi.readline().split()[0]) 
+    thresholdToll = eval(fi.readline().split()[0]) 
+    thresholdZero = eval(fi.readline().split()[0]) 
+    thresholdEffects = eval(fi.readline().split()[0]) 
 
     fi.close()
 
@@ -72,7 +75,7 @@ def importParameters (verbose, file):
     parameters = [chi, delta, ro, Da, div]
 
     # List of environment sets
-    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing]; 
+    environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing, thresholdToll, thresholdZero, thresholdEffects]; 
     
     chemicalSpecies = {}
     reactions = []
@@ -150,7 +153,7 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     sChi = "\u03c7"
 
     chi, delta, ro, Da, div = parameters
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_timing = environment
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 
     print("\nRecognized Parameters:")
     print("]", sDelta, ":\t", delta)
@@ -166,11 +169,14 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     print("]", "end time:\t",t_end)
     print("]", "max  step:\t",max_step)       
     print("]", "min toll. :",toll_min, "\t]", "max toll. :",toll_max)
+    print("]", "toll. threshold:\t", thresholdToll)
+    print("]", "zero threshold:\t", thresholdZero)       
+    print("]", "effect threshold:\t", thresholdEffects)
     
     (gen_exp := [value + 1 for value in gen_exp])
     gen_exp_str = ', '.join(map(str, gen_exp))
     print("]", "generation to expand: ", gen_exp_str, end = '\t') if gen_exp else print("]", "generation to expand: nd\t", end = '')
-    print ("]", "export time: ", genExp_timing) if genExp_timing != -1 else print ("]", "export time: nd")
+    print ("]", "export time: ", genExp_time) if genExp_time != -1 else print ("]", "export time: nd")
 
     print("\nChemical Species imported:")
     i = 0
@@ -253,7 +259,7 @@ def printMapReactions (mapReactions):
 def excelInit (chemicalSpecies, allParameters, currentTime, refName): 
 
     chi, delta, ro, Da, div = allParameters[0]
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = allParameters[1]
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = allParameters[1]
     reactions = allParameters[2]
 
     #* path directory definition
@@ -334,6 +340,9 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
         "max step": max_step,
         "min toll.": toll_min,
         "max toll.": toll_max,
+        "tollerance th.": thresholdToll,
+        "zero th.": thresholdZero,
+        "effects th.": thresholdEffects,
     }
 
     we.write(0, 0, "Parameter", header_format)
@@ -470,7 +479,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     # refName [0] -> type of export
     # refName [1] -> name of file
 
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = allParameters[1]
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = allParameters[1]
 
     if nFlux == 0:
         workbook, wc, wq = excelInit(chemicalSpecies, allParameters, currentTime, refName)

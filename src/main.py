@@ -8,12 +8,12 @@ from errorsCheck import resetInfo
 
 """
 parameters = allParameters[0]
-# parameters = [chi, delta, ro, Da, div]
+#parameters = [chi, delta, ro, Da, div]
 chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
+# nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 """
 
 def main(verbose, reset, file, importView, ecomode):

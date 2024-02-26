@@ -14,7 +14,7 @@ chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
-nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
+# nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 """
 
 def scalar_multiply(vector, scalar):
@@ -41,7 +41,9 @@ def divisionTest(time, protoAct, parameters):
     else:
         return True
 
-def tolleranceTest(protoAct, protoNext, s_min, s_max, nFlux, dt):
+def tolleranceTest(protoAct, protoNext, tolleranceValues, nFlux, dt):
+
+    s_min, s_max, thresholdToll = tolleranceValues 
 
     if not protoNext:
         checkProtoSim (9, "false protoNext")
@@ -51,26 +53,28 @@ def tolleranceTest(protoAct, protoNext, s_min, s_max, nFlux, dt):
         if protoNext[i] < 0:
             return True
         
-        if protoNext[i]!=0 and protoAct[i] != 0:
+        if protoNext[i] >= thresholdToll and protoAct[i] >= thresholdToll:
             var = protoNext[i] / protoAct[i]
             if var > s_max or var < s_min:
                 return True
     
     return False
 
-def callOdeSolver (ode_function, time, protoAct, parameters, mapReactions, deltaT, nFlux):
+def callOdeSolver (ode_function, time, protoAct, parameters, mapReactions, deltaT, nFlux, thresholdEffects):
     
     for i in range(len(protoAct[1]) - nFlux):
         if protoAct[1][i]<0:
             checkProtoSim (4, [protoAct[1][i], i])
     
-    var = ode_function (time, protoAct, [parameters, mapReactions, nFlux])
+    var = ode_function (time, protoAct, [parameters, mapReactions, nFlux, thresholdEffects])
 
     return var
 
-def solver (ode_function, interval, protoGen, mapReactions, parameters, divisionTest, maxStep, tollerance, nFlux, coefficient, userCheck):
+def solver (ode_function, interval, protoGen, mapReactions, parameters, divisionTest, environment, coefficient, userCheck):
 
     verbose, ecomode = userCheck
+    nIterates, t_end, maxStep, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
+    tolleranceValues = [toll_min, toll_max, thresholdToll]
 
     deltaT = min (maxStep/10., interval[1]/10.)
     
@@ -81,7 +85,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, division
 
     # Resolution of negative quantities
     for i in range (len(protoAct)-nFlux):
-            if protoAct[i]<0: 
+            if protoAct[i] < thresholdZero: 
                     protoAct[i] = 0 
  
     if not ecomode:
@@ -91,20 +95,26 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, division
         tempi += [t]
         y += [protoAct[:]]
     
-    seconds = 0.01
+    seconds = 0
+    intervals = 1
 
     while divisionTest (t, protoAct, parameters):
 
-        var = callOdeSolver (ode_function, t, [coefficient, protoAct], parameters, mapReactions, deltaT, nFlux)
+        if verbose: 
+            if t > seconds:
+                print("time:\t%f"%(t))
+                seconds += intervals
+
+        var = callOdeSolver (ode_function, t, [coefficient, protoAct], parameters, mapReactions, deltaT, nFlux, thresholdEffects)
 
         protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
 
-        if not tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
+        if not tolleranceTest (protoAct, protoNext, tolleranceValues, nFlux, deltaT):
             deltaT *= 1.2
             if deltaT > maxStep:
                 deltaT = maxStep
             
-        while tolleranceTest (protoAct, protoNext, tollerance[0], tollerance[1], nFlux, deltaT):
+        while tolleranceTest (protoAct, protoNext, tolleranceValues, nFlux, deltaT):
             deltaT /= 2
             protoNext = add_vectors (protoAct, scalar_multiply(var, deltaT))
 
@@ -131,7 +141,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, division
 
 def simulation (verbose, ecomode, currentTime, environment, parameters, chemicalSpecies, reactions): 
 
-    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time = environment
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 
     # Preparing to directly export data to the csv file.
     if nFlux == 0:
@@ -179,7 +189,8 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
             
             # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
-            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            # (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, environment, coefficient, [verbose, ecomode])
             endTime = time.time()
 
             # possible export of  generation export to be expanded 
@@ -299,9 +310,15 @@ def ode_function (time, protoAct, parameters):
     # parameters -> [parameters, reaction, nFlux]
 
     nFlux = parameters[2]
+    thresholdEffects = parameters[3]
+
     protoX = protoAct[1][:]
     coefficients = protoAct[0] [:]
     
+    for i in range(len(protoX)-nFlux):
+        if protoX[i] < thresholdEffects:
+            protoX[i] = 0
+
     Dx=scalar_multiply(protoX, 0)
 
     # Contribution to membrane formation
