@@ -60,7 +60,7 @@ def createPajekConfiguration (chemicalSpecies, reactions, verbose):
     with open(fileName, 'w') as file:
             
         i = 0
-        file.write ("*Network Bipartite directed Erdos-Renyi random network\n")
+        file.write ("Network Bipartite directed Erdos-Renyi random network\n")
         file.write (f"*Vertices {len(chemicalSpecies)+len(reactions)}\n")
 
         for item in chemicalSpecies:
