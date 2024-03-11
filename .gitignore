@@ -2,7 +2,6 @@ out/
 input/*
 __pycache__
 .vscode
-appunti.py
 src/__pycache__
 exe/
 .DS_Store

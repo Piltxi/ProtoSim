@@ -307,8 +307,9 @@ def ode_function (time, protoAct, parameters):
 
     # time
     # protoAct -> [KinCoefficients, protoX]
-    # parameters -> [parameters, reaction, nFlux]
+    # parameters -> [parameters, reaction, nFlux, thresholdEffects]
 
+    reactions = parameters[1]
     nFlux = parameters[2]
     thresholdEffects = parameters[3]
 
@@ -325,8 +326,6 @@ def ode_function (time, protoAct, parameters):
     for i in range(len(protoX)-nFlux):
         if coefficients[i]!=0:
             Dx[0] += protoX[i] * coefficients[i]
-
-    reactions = parameters[1]
     
     # Reaction Variation Rules
     for i in range(len(reactions)):
