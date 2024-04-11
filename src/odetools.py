@@ -342,7 +342,7 @@ def ode_function (time, protoAct, parameters):
 
             case ReactionType.FLOWOUT: 
 
-                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]]
+                term = reactions[i]["k"] * protoAct[reactions[i]["in"][0]]
                 Dx[reactions[i]["in"][0]] -= term
 
                 if nFlux > 0:
