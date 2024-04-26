@@ -1,4 +1,3 @@
-from asyncio import protocols
 import numpy as np
 import time
 from tqdm import tqdm
@@ -9,8 +8,8 @@ from errorsCheck import checkProtoSim
 
 """
 parameters = allParameters[0]
-#parameters = [chi, delta, ro, Da, div]
-chi, delta, ro, Da, div = parameters
+# parameters = [chi, delta, ro, Da, div]
+# chi, delta, ro, Da, div = parameters
 
 environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp]; 
@@ -417,6 +416,21 @@ def ode_function (time, protoAct, parameters):
                 if nFlux > 0:
                     if i < nFlux: 
                         Dx [(len(protoX)-nFlux)+i] += ((parameters[0][3] * ( protoX[0] / (parameters [0][2] * parameters[0][1]) ) * reactions[i]["k"]) * (reactions[i]["in"][0] - (protoX[reactions[i]["out"][0]] / (parameters[0][0] * pow (protoX[0], 1.5))))) / parameters[0][1]
+
+            case ReactionType.CONDENSATION_33: 
+    
+                term = reactions[i]["k"] * protoX[reactions[i]["in"][0]] * protoX[reactions[i]["in"][1]] * protoX[reactions[i]["in"][2]] / pow ((parameters[0][0] * pow (protoX[0], 1.5)), 2)
+                
+                Dx[reactions[i]["in"][0]] -= term
+                Dx[reactions[i]["in"][1]] -= term
+                Dx[reactions[i]["in"][2]] -= term
+                Dx[reactions[i]["out"][0]] += term
+                Dx[reactions[i]["out"][1]] += term
+                Dx[reactions[i]["out"][2]] += term
+
+                if nFlux > 0:
+                    if i < nFlux: 
+                        Dx [(len(protoX)-nFlux)+i] += term 
 
             case _:
                 checkProtoSim (5, reactions[i])

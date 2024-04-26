@@ -7,6 +7,7 @@ class ReactionType (Enum):
     CONDENSATION_21 = "Condensation 2:1"
     CONDENSATION_22 = "Condensation 2:2"
     CONDENSATION_32 = "Condensation 3:2"
+    CONDENSATION_33 = "Condensation 3:3"
 
     CLEAVAGE_12 = "Cleavage 1:2"
     CLEAVAGE_23 = "Cleavage 2:2"
@@ -55,6 +56,8 @@ def identifyType (reaction, verbose):
     if nReactans == 3:
         if nProducts == 2:
             return ReactionType.CONDENSATION_32
+        if nProducts == 3: 
+            return ReactionType.CONDENSATION_33
 
     checkProtoSim(2, reaction)
 
