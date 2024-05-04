@@ -144,10 +144,10 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
 
     # Preparing to directly export data to the csv file.
     if nFlux == 0:
-        workbook, wc, wq = excelInit(chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "sim"])
+        workbook, wc, wq = excelInit (chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "sim"])
 
     if nFlux > 0:
-        workbook, wc, wq, wf = excelInit(chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "sim"])
+        workbook, wc, wq, wf = excelInit (chemicalSpecies, [parameters, environment, reactions], currentTime, [0, "sim"])
 
     protoGen = np.zeros (len(chemicalSpecies)+nFlux)
     protoGen[:len(chemicalSpecies)] = [chemicalSpecies[quantity][0] for quantity in chemicalSpecies]
@@ -186,16 +186,15 @@ def simulation (verbose, ecomode, currentTime, environment, parameters, chemical
                         print (f"\n\t!]eco mode de-activated: expansion of imported generation [{i+1}].")
                     ecomode = False
             
-            # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             startTime = time.time()
-            # (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, max_step, [toll_min, toll_max], nFlux, coefficient, [verbose, ecomode])
+            # num_sol = solve_ivp(ode_fn, [t_begin, t_end], [x_init], method=method, dense_output=True)
             (solverTime, y_sol) = solver (ode_function, [t_start, t_end], [protoInit, protoGen], mapReactions, parameters, divisionTest, environment, coefficient, [verbose, ecomode])
             endTime = time.time()
 
             # possible export of  generation export to be expanded 
             if i in gen_exp: 
                 controlIndex=i
-                excelExport(y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], currentTime, [1, f"expand {i+1}"], verbose)
+                excelExport (y_sol, solverTime, chemicalSpecies, [parameters, environment, reactions], currentTime, [1, f"expand {i+1}", i], verbose)
                 if verbose: 
                     print (f"\n\t!]expansion of imported generation [{i+1}] exported.\n")
 

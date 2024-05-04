@@ -8,7 +8,6 @@ from datetime import datetime
 from errorsCheck import checkProtoSim
 from reactions import identifyType, ReactionType
 
-
 """
 parameters = allParameters[0]
 # parameters = [chi, delta, ro, Da, div]
@@ -18,6 +17,13 @@ environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects]; 
 # nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 """
+
+def getTiming (gen_exp, genExp_time, target):
+    try: 
+        ii = gen_exp.index (target)
+        return genExp_time[ii]
+    except ValueError: 
+        checkProtoSim(11, [gen_exp, genExp_time, target])
 
 def _readValuesInLine (line): 
     pattern = r"[-+]?\d*\.?\d+"
@@ -79,6 +85,8 @@ def importParameters (verbose, file):
     gen_exp = [int(x) for x in gen_exp]
     if gen_exp [0] != -1: 
         gen_exp = [value - 1 for value in gen_exp]
+    
+    genExp_timing = [int(x) for x in genExp_timing]
 
     calving = 0.353553
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))
@@ -498,6 +506,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     # allParameters [2] -> reaction
     # refName [0] -> type of export
     # refName [1] -> name of file
+    # refName [2] -> expand index 
 
     nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = allParameters[1]
 
@@ -514,9 +523,14 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     # export generation data to be expanded at a defined interval 
     if refName [0] == 1 and genExp_time != -1:
         
+        timing = getTiming (gen_exp, genExp_time, (refName[2]))
+        print (f"Esportazione della espansione {refName[2]}, timing riconosciuto: {timing}")
+        
+
         i = 1
+        # timing = 80
         if nFlux == 0:
-            for interval in np.arange(0, max(timeSimulation), genExp_time):
+            for interval in np.arange(0, max(timeSimulation), timing):
                 index = np.argmin(np.abs(np.array(timeSimulation) - interval))
                 
                 wq.write(i, 0, index)
@@ -532,9 +546,10 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
                     column += 1
                 i+=1
         
+        print ("finito")
         i=1
         if nFlux > 0:
-            for interval in np.arange(0, max(timeSimulation), genExp_time):
+            for interval in np.arange(0, max(timeSimulation), timing):
                 index = np.argmin(np.abs(np.array(timeSimulation) - interval))
                 
                 wq.write(i, 0, index)
@@ -551,7 +566,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
                 i+=1
             
             i=1
-            for interval in np.arange(0, max(timeSimulation), genExp_time):
+            for interval in np.arange(0, max(timeSimulation), timing):
                 index = np.argmin(np.abs(np.array(timeSimulation) - interval))
 
                 wf.write(i, 0, index)

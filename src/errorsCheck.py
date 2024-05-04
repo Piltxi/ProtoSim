@@ -148,6 +148,10 @@ def checkProtoSim (arg, data):
             print (f"\nERROR 10 - species '{data}' not found in loadedSpecies\n")
             quit()
 
+        case 11:
+           # data = [gen_exp, genExp_time, target])
+           _errorState (11, f"generation expansion: timing match not found\nGen. to expand: {data[0]}\nTiming: {data[1]}\nTarget: {data[2]}\n")
+
         case _: 
             print ("\nUNKNOW ERROR XY")
             quit ()
