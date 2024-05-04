@@ -2,10 +2,12 @@ import numpy as np
 import subprocess
 import os
 import xlsxwriter
+import re
 from datetime import datetime
 
 from errorsCheck import checkProtoSim
 from reactions import identifyType, ReactionType
+
 
 """
 parameters = allParameters[0]
@@ -16,6 +18,13 @@ environment = allParameters [1]
 # environment = [nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects]; 
 # nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 """
+
+def _readValuesInLine (line): 
+    pattern = r"[-+]?\d*\.?\d+"
+    values = re.findall(pattern, line)
+    valuesInList = [float(value) for value in values]
+    # print (f"valuesInList: {valuesInList}")
+    return valuesInList
 
 def getOrdinal (number):
     if 10 <= number % 100 <= 20:
@@ -57,16 +66,19 @@ def importParameters (verbose, file):
     toll_min = eval(fi.readline().split()[0])
     toll_max = eval(fi.readline().split()[0])
     nFlux = eval(fi.readline().split()[0]) 
-    gen_exp = [int(x) for x in fi.readline().split() if x.isdigit()]
-    genExp_timing = eval(fi.readline().split()[0]) 
+    gen_exp = _readValuesInLine (fi.readline())
+    genExp_timing = _readValuesInLine (fi.readline())
     thresholdToll = eval(fi.readline().split()[0]) 
     thresholdZero = eval(fi.readline().split()[0]) 
     thresholdEffects = eval(fi.readline().split()[0]) 
 
     fi.close()
 
-    checkProtoSim(7, [gen_exp, nIterates, genExp_timing])
-    gen_exp = [value - 1 for value in gen_exp]
+    checkProtoSim(7, [nIterates, gen_exp, genExp_timing])
+    
+    gen_exp = [int(x) for x in gen_exp]
+    if gen_exp [0] != -1: 
+        gen_exp = [value - 1 for value in gen_exp]
 
     calving = 0.353553
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))
@@ -172,12 +184,14 @@ def printInfo (parameters, environment, chemicalSpecies, reactions):
     print("]", "toll. threshold:\t", thresholdToll)
     print("]", "zero threshold:\t", thresholdZero)       
     print("]", "effect threshold:\t", thresholdEffects)
-    
-    (gen_exp := [value + 1 for value in gen_exp])
-    gen_exp_str = ', '.join(map(str, gen_exp))
-    print("]", "generation to expand: ", gen_exp_str, end = '\t') if gen_exp else print("]", "generation to expand: nd\t", end = '')
-    print ("]", "export time: ", genExp_time) if genExp_time != -1 else print ("]", "export time: nd")
 
+    if gen_exp [0] == -1 and genExp_time[0] == -1: 
+        print ("] generation to expand: ND")
+    else: 
+        print("] generation to expand:")
+        for gen, timing in zip(gen_exp, genExp_time):
+            print("\t.gen: {gen} - timing: {timing}".format(gen=int(gen)+1, timing="default" if timing == -1 else timing))
+    
     print("\nChemical Species imported:")
     i = 0
     for species, (quantity, coefficient) in chemicalSpecies.items():
@@ -320,9 +334,15 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
     header_format = workbook.add_format({'bg_color': '#008E3E', 'bold': True, 'align': 'center'})
     header_format.set_border(1)
 
-    (gen_exp := [value + 1 for value in gen_exp])
-    gen_exp_str = ', '.join(map(str, gen_exp)) if gen_exp else 'nd'
-    timeExp = genExp_time if genExp_time != -1 else "nd"
+    if gen_exp [0] == -1: 
+        gen_exp_str = time_exp_str = "not enabled"
+    else: 
+        (gen_exp := [value + 1 for value in gen_exp])
+        gen_exp_str = ', '.join(map(str, gen_exp)) if gen_exp[0] != -1 else "not enabled"
+        if all(it == -1 for it in genExp_time): 
+            time_exp_str = "nd"
+        else: 
+            time_exp_str = ', '.join("nd" if time == -1 else str(time) for time in genExp_time) if genExp_time else "not enabled"
 
     #* export parameters
     data = {
@@ -333,7 +353,7 @@ def excelInit (chemicalSpecies, allParameters, currentTime, refName):
         "Duplication Threshold": div,
         "flux": nFlux,
         "gen. to expand": gen_exp_str,
-        "interval for expansion": timeExp,
+        "interval for expansion": time_exp_str,
         "iterations": nIterates,
         "calving": calving,
         "end time": t_end,

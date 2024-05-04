@@ -1,6 +1,10 @@
 import os
 import subprocess
 
+def _errorState (code, message): 
+    print (f"\nERROR {code} - {message}")
+    quit()
+
 def checkProtoSim (arg, data):
     
     match arg: 
@@ -71,35 +75,52 @@ def checkProtoSim (arg, data):
 
         case 7: 
 
-            if data [1] < 1: 
-                print ("ERROR 07 - invalid number of iterations [nIterates] detected")
-                quit()
+            nIterates, gen_exp, genExp_timing = data
 
-            if data [0] == -1 and data[2] == -1:
-                return
+            """
+                check list: 
+                1] nIterates > 1
+                2] expand gen not enabled
+                3] expand index(s) consistency with nIterates
+                4] expand index(s) consistency with timing parameter(s)
+                5] timing parameter(s) > 0
+                6] badref for expand index(s) enabled
+            """
 
-            for element in data [0]: 
-                if element == 0 or element > data [1]:
-                    print (f"\nERROR 07 - loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
-                    quit()
+            # 1-> numbers of nIterates imported: <1 
+            if nIterates < 1: 
+                _errorState ([7, 0], "invalid number of iterations [nIterates] detected")
 
-            for element in data [0]: 
-                element-=1
+            # 2-> no expand request
+            if len(gen_exp) == 1 and gen_exp[0] == -1: 
+                if len(genExp_timing) == 1 and genExp_timing[0] == -1:
+                    return
+                else: 
+                    _errorState ([7, 2], f"expansion indices and corresponding timing\ninconsistent values ​​detected between timing({genExp_timing}), {len(genExp_timing)}value(s) and expansions({gen_exp}), {len(gen_exp)}value(s)")
+            
+            # 3-> expansion indices corrected with nIterates
+            for element in gen_exp: 
+                if element <= 0 or element > nIterates:
+                    _errorState ([7, 1], "loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
 
-            if data [2] != -1:
-                if data [2] <= 0:
-                    print(f"ERROR 07 - unknown time of export generations of expansion\nIf you don't want to define the time, type '-1' in the parameters file.")
-                    quit()
+            # 4-> expansion indices == timing indices
+            if len(gen_exp) != len(genExp_timing): 
+                _errorState ([7, 2], f"expansion indices and corresponding timing\ninconsistent values ​​detected between timing({genExp_timing}), {len(genExp_timing)}value(s) and expansions({gen_exp}), {len(gen_exp)}value(s)")
 
-            if data [2] != -1 and data [0] == -1: 
-                print(f"ERROR 07 - unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
-                quit()
+            # 5-> timing indices > 0
+            i=1
+            for element in genExp_timing: 
+                if element <= 0 and not element == -1 :
+                    _errorState ([7, 3], f"unknown time of expand n. {i}\nSpecify timing parameter for every generation to expand, or type '-1'")
+                i+=1
 
-            if not data[0] and data [2] != -1:
-                print(f"ERROR 07 - unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
-                quit()
+            # 6-> badref for expand index(s) enabled
+            if gen_exp[0] == -1 and genExp_timing[0] != -1:
+                _errorState ([7, 4], f"unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
 
-        
+            # for element in gen_exp: 
+            #     element-=1
+
         case 8: 
 
             if data [0] <= 0:
