@@ -86,7 +86,7 @@ def importParameters (verbose, file):
     if gen_exp [0] != -1: 
         gen_exp = [value - 1 for value in gen_exp]
     
-    genExp_timing = [int(x) for x in genExp_timing]
+    # genExp_timing = [int(x) for x in genExp_timing]
 
     calving = 0.353553
     chi = 1/(6*pow(np.pi*pow(delta,3)*pow(ro,3),0.5))
