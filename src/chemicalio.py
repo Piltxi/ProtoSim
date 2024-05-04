@@ -85,7 +85,6 @@ def importParameters (verbose, file):
     gen_exp = [int(x) for x in gen_exp]
     if gen_exp [0] != -1: 
         gen_exp = [value - 1 for value in gen_exp]
-    
     # genExp_timing = [int(x) for x in genExp_timing]
 
     calving = 0.353553
@@ -520,15 +519,17 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
     if nFlux > 0: 
         fluxes = [row[-nFlux:] for row in matrixSimulation]
     
-    # export generation data to be expanded at a defined interval 
-    if refName [0] == 1 and genExp_time != -1:
-        
+    #* export generation data to be expanded at a defined interval 
+
+    if refName [0] == 1: 
         timing = getTiming (gen_exp, genExp_time, (refName[2]))
-        print (f"Esportazione della espansione {refName[2]}, timing riconosciuto: {timing}")
-        
+
+    if refName [0] == 1 and timing != -1:
+    
+        if verbose: 
+            print (f"\t\texpansion {refName[2]} - timing: {timing}")
 
         i = 1
-        # timing = 80
         if nFlux == 0:
             for interval in np.arange(0, max(timeSimulation), timing):
                 index = np.argmin(np.abs(np.array(timeSimulation) - interval))
@@ -545,8 +546,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
                     wc.write(i, column, getConcentration (value, chemicalVariation[index][0], allParameters[0][2], allParameters[0][1]))
                     column += 1
                 i+=1
-        
-        print ("finito")
+    
         i=1
         if nFlux > 0:
             for interval in np.arange(0, max(timeSimulation), timing):
@@ -595,6 +595,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         cell_format = workbook.add_format({'bg_color': '#00FFFF'})
         wq.set_row(i, None, cell_format)
         wc.set_row(i, None, cell_format)
+        print ("QUI succede blu: , ", i)
 
         if nFlux > 0: 
             wf.write(i, 0, len(chemicalVariation))
@@ -607,7 +608,7 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         
             wf.set_row(i, None, cell_format)
 
-    # export generation data standard
+    #* export generation data standard
     else: 
         
         #* Index writing

@@ -94,7 +94,7 @@ def solver (ode_function, interval, protoGen, mapReactions, parameters, division
         tempi += [t]
         y += [protoAct[:]]
     
-    seconds = 0
+    seconds = 100
     intervals = 1
 
     while divisionTest (t, protoAct, parameters):
