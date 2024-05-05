@@ -165,6 +165,41 @@ def importParameters (verbose, file):
     
     return [parameters, environment, chemicalSpecies, reactions]
 
+def printParameters (parameters, environment): 
+    sDelta = "\u03b4"
+    sRo = "\u03c1"
+    sChi = "\u03c7"
+
+    chi, delta, ro, Da, div = parameters
+    nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
+
+    print("\nRecognized Parameters:")
+    print("]", sDelta, ":\t", delta)
+    print("]", sRo, ":\t", ro)
+    print ("]", sChi, ":\t", chi)
+    print("]", "Da:\t", Da)
+    print("]", "Duplication threshold:\t", div)
+
+    print("\nExecution Parameters:")
+    print("]", "flux:\t",nFlux)
+    print("]", "iterations:\t", nIterates)
+    print("]", "calving:\t", calving)
+    print("]", "end time:\t",t_end)
+    print("]", "max  step:\t",max_step)       
+    print("]", "min toll. :",toll_min, "\t]", "max toll. :",toll_max)
+    print("]", "toll. threshold:\t", thresholdToll)
+    print("]", "zero threshold:\t", thresholdZero)       
+    print("]", "effect threshold:\t", thresholdEffects)
+
+    if gen_exp [0] == -1 and genExp_time[0] == -1: 
+        print ("] generation to expand: ND")
+    else: 
+        print("] generation to expand:")
+        for gen, timing in zip(gen_exp, genExp_time):
+            print("\t.gen: {gen} - timing: {timing}".format(gen=int(gen)+1, timing="default" if timing == -1 else timing))
+
+    print ("\n")
+
 def printInfo (parameters, environment, chemicalSpecies, reactions): 
 
     sDelta = "\u03b4"

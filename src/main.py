@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from chemicalio import importParameters, printInfo, printFinalInfo
+from chemicalio import importParameters, printInfo, printFinalInfo, printParameters
 from odetools import simulation
 from errorsCheck import resetInfo
 
@@ -16,7 +16,7 @@ environment = allParameters [1]
 # nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 """
 
-def main(verbose, reset, file, importView, ecomode):
+def main(verbose, reset, file, importView, ecomode, parameters):
 
     if reset: 
         resetInfo()
@@ -25,6 +25,10 @@ def main(verbose, reset, file, importView, ecomode):
 
     if importView: 
         printInfo(parameters, environment, chemicalSpecies, reactions)
+        quit()
+
+    if parameters: 
+        printParameters(parameters, environment)
         quit()
 
     if verbose:
@@ -44,8 +48,9 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--reset", action="store_true", help="reset directory out/")
     parser.add_argument("-f", "--file", action="store_true", help="specify input file for parameters and reactions")
     parser.add_argument("-i", "--importV", action="store_true", help="view data imported")
+    parser.add_argument("-p", "--parameters", action="store_true", help="view only parameters")
 
     args = parser.parse_args()
 
-    main(args.verbose, args.reset, args.file, args.importV, args.eco)
+    main(args.verbose, args.reset, args.file, args.importV, args.eco, args.parameters)
 
