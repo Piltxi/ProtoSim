@@ -595,7 +595,6 @@ def excelExport (matrixSimulation, timeSimulation, chemicalSpecies, allParameter
         cell_format = workbook.add_format({'bg_color': '#00FFFF'})
         wq.set_row(i, None, cell_format)
         wc.set_row(i, None, cell_format)
-        print ("QUI succede blu: , ", i)
 
         if nFlux > 0: 
             wf.write(i, 0, len(chemicalVariation))
