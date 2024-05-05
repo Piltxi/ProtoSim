@@ -16,7 +16,7 @@ environment = allParameters [1]
 # nIterates, t_end, max_step, toll_min, toll_max, nFlux, gen_exp, calving, genExp_time, thresholdToll, thresholdZero, thresholdEffects = environment
 """
 
-def main(verbose, reset, file, importView, ecomode, parameters):
+def main(verbose, reset, file, importView, ecomode, parametersView):
 
     if reset: 
         resetInfo()
@@ -27,8 +27,8 @@ def main(verbose, reset, file, importView, ecomode, parameters):
         printInfo(parameters, environment, chemicalSpecies, reactions)
         quit()
 
-    if parameters: 
-        printParameters(parameters, environment)
+    if parametersView: 
+        printParameters (parameters, environment)
         quit()
 
     if verbose:
