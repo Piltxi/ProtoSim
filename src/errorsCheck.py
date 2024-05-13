@@ -9,18 +9,16 @@ def checkProtoSim (arg, data):
     
     match arg: 
 
+        # potentially deprecated
         case 0: 
             if (data != 'C'):
-                print ("\nERROR 00 - loading parameters from file")
-                quit()
+                _errorState (0, "loading parameters from file")
         
         case 1: 
-            print ("\nERROR 01 - information symbol: view chemistry file", data)
-            quit ()
+            _errorState (1, f"information symbol |{data}| loaded from chemistry file")
         
         case 2: 
-            print (f"\nERROR 02 - \" {data} \" type of reaction unknown")
-            quit()
+            _errorState (2, f"|{data}| type of reaction unknown")
 
         case 3: 
             
@@ -36,42 +34,34 @@ def checkProtoSim (arg, data):
                     
                     if reaction["type"] == ReactionType.FLOWIN: 
                         if products[0] not in data [0]: 
-                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{products[0]}' chemical species unknown ")
-                            quit()
+                            _errorState(3, f"invalid {getOrdinal(i+1)} reaction: '{products[0]}' chemical species unknown")
                         else: 
                             continue
 
                     if reaction["type"] == ReactionType.FLOWOUT: 
                         if reactants[0] not in data [0]: 
-                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{reactants[0]}' chemical species unknown")
-                            quit ()
+                            _errorState(3, f"invalid {getOrdinal(i+1)} reaction: '{reactants[0]}' chemical species unknown")
                         else: 
                             continue
 
                     if reaction["type"] == ReactionType.DIFFUSION: 
                         
                         if products[0] not in data [0]: 
-                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{products[0]}' chemical species unknown")
-                            quit ()
+                            _errorState(3, f"invalid {getOrdinal(i+1)} reaction: '{products[0]}' chemical species unknown")
                         else: 
                             continue
 
                     if specie not in data[0]: 
-                            print (f"\nERROR 03 - invalid {getOrdinal(i+1)} reaction: '{specie}' chemical species unknown")
-                            quit()
+                            _errorState(3, f"invalid {getOrdinal(i+1)} reaction: '{specie}' chemical species unknown")
 
         case 4: 
-            print ("\nERROR 04 - negative quantities detected\n")
-            print ("Value: ", data[0], "\tIndex: ", data[1], "\n")
-            quit()
+            _errorState(4, "negative quantities detected\nvalue: {data[0]}\tindex: {data[1]}\n")
 
         case 5: 
-            print ("\nERROR 05 - ode_function, unknow variation rules for ", data["type"])
-            quit()
+            _errorState(5, f"unknow ODE rules for {data["type"]}")
 
         case 6: 
-            print (f"\nERROR 06 - indexing reactions '{data}'")
-            quit()
+            _errorState(6, f"indexing reactions |{data}|")
 
         case 7: 
 
@@ -96,27 +86,27 @@ def checkProtoSim (arg, data):
                 if len(genExp_timing) == 1 and genExp_timing[0] == -1:
                     return
                 else: 
-                    _errorState ([7, 2], f"expansion indices and corresponding timing\ninconsistent values ​​detected between timing({genExp_timing}), {len(genExp_timing)}value(s) and expansions({gen_exp}), {len(gen_exp)}value(s)")
+                    _errorState ([7, 1], f"expansion indices and corresponding timing\ninconsistent values ​​detected between timing({genExp_timing}), {len(genExp_timing)}value(s) and expansions({gen_exp}), {len(gen_exp)}value(s)")
             
             # 3-> expansion indices corrected with nIterates
             for element in gen_exp: 
                 if element <= 0 or element > nIterates:
-                    _errorState ([7, 1], "loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
+                    _errorState ([7, 2], "loading generation indexes to expand\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
 
             # 4-> expansion indices == timing indices
             if len(gen_exp) != len(genExp_timing): 
-                _errorState ([7, 2], f"expansion indices and corresponding timing\ninconsistent values ​​detected between timing({genExp_timing}), {len(genExp_timing)}value(s) and expansions({gen_exp}), {len(gen_exp)}value(s)")
+                _errorState ([7, 3], f"expansion indices and corresponding timing\ninconsistent values ​​detected between timing({genExp_timing}), {len(genExp_timing)}value(s) and expansions({gen_exp}), {len(gen_exp)}value(s)")
 
             # 5-> timing indices > 0
             i=1
             for element in genExp_timing: 
                 if element <= 0 and not element == -1 :
-                    _errorState ([7, 3], f"unknown time of expand n. {i}\nSpecify timing parameter for every generation to expand, or type '-1'")
+                    _errorState ([7, 4], f"unknown time of expand n. {i}\nSpecify timing parameter for every generation to expand, or type '-1'")
                 i+=1
 
             # 6-> badref for expand index(s) enabled
             if gen_exp[0] == -1 and genExp_timing[0] != -1:
-                _errorState ([7, 4], f"unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
+                _errorState ([7, 5], f"unknown time of export generations of expansion\nIf you don't want to export any specific generation, type '-1' in the parameters file.")
 
             # for element in gen_exp: 
             #     element-=1
@@ -124,37 +114,30 @@ def checkProtoSim (arg, data):
         case 8: 
 
             if data [0] <= 0:
-                print (f"\nERROR 08 - zero reactions found\n")
-                quit()
+                _errorState (8, "zero reactions found")
 
             if data [1] < 0 or not (isinstance(data [1], int)):
-
-                print (f"\nERROR 08 - unknown flux number: please type '0' in parameters file to disable tracking\n")
-                quit()
+                _errorState (8, "unknown flux number: please type '0' in parameters file to disable tracking")
 
             if data [1] == 0:
                 return
 
             if data [1] > 0: 
                 if data [1] > data [0]: 
-                    print (f"\nERROR 08 - too many fluxes recognized\nnumber of imported reactions: {data [0]} - number of flux imported: {data[1]}.")
-                    quit()
+                    _errorState (8, f"too many fluxes recognized:\n imported reactions: |{data [0]}|\timported flux: |{data[1]}|")
 
         case 9: 
-            print (f"\nERROR 09 - tollerance Test: empty protoX [{data}]\n")
-            quit()
+            _errorState (9, f"tollerance test: empty protoX {data}")
 
         case 10:
-            print (f"\nERROR 10 - species '{data}' not found in loadedSpecies\n")
-            quit()
+            _errorState (10, f"species |{data}| not found in loadedSpecie")
 
         case 11:
-           # data = [gen_exp, genExp_time, target])
+           # recived data = [gen_exp, genExp_time, target])
            _errorState (11, f"generation expansion: timing match not found\nGen. to expand: {data[0]}\nTiming: {data[1]}\nTarget: {data[2]}\n")
 
         case _: 
-            print ("\nUNKNOW ERROR XY")
-            quit ()
+            _errorState ("XY", "UNKNOW ERROR")
 
 def resetInfo (): 
     
