@@ -163,7 +163,8 @@ def loadInfoFromSim (fileName, verbose):
                 print ("Please enter a valid integer")
 
     if generationNumber != -1:
-        checkProtoSim(7, [[generationNumber], nIteratesParameter, -1])
+        checkProtoSim (7, [nIteratesParameter, [generationNumber], [-1]])
+
         generationNumber+=1
     
     if verbose and generationNumber != -1: 
